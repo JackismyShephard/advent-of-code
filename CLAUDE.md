@@ -66,6 +66,10 @@ Focused configuration for learning Rust without information overload:
 - Push changes to remote repository
 - This ensures progress is saved and quality hooks are enforced
 
+- **When user says "remember" something: Add it to this CLAUDE.md file**
+- User instructions prefixed with "remember" should be documented here
+- This creates a persistent record of important project-specific guidance
+
 ## Code Quality Enforcement
 
 ### Pre-commit Hooks (Active)
