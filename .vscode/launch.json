@@ -1,0 +1,71 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug Day 01",
+      "cargo": {
+        "args": [
+          "build",
+          "-p",
+          "day01",
+          "--bin=day01"
+        ],
+        "filter": {
+          "name": "day01",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug Current Day Package",
+      "cargo": {
+        "args": [
+          "build",
+          "-p",
+          "${input:dayPackage}",
+          "--bin=${input:dayPackage}"
+        ],
+        "filter": {
+          "name": "${input:dayPackage}",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Run Current Day Package",
+      "cargo": {
+        "args": [
+          "run",
+          "-p",
+          "${input:dayPackage}"
+        ]
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "dayPackage",
+      "description": "Which day package to run/debug?",
+      "type": "promptString",
+      "default": "day01"
+    }
+  ]
+}

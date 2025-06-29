@@ -1,0 +1,16 @@
+[workspace]
+members = ["day*", "shared"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+
+[workspace.dependencies]
+anyhow = "1.0"
+
+[profile.dev]
+# Faster compilation for AoC iteration
+opt-level = 0
+debug = true
+incremental = true
