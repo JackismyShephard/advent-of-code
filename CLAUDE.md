@@ -26,7 +26,10 @@ tutorials.
 
 ## Setup Notes
 
-- When converting single package → workspace, remove leftover root `src/` folder
+- **Rust toolchain**:
+  - Install via: `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
+  - Restart shell or run: `source ~/.cargo/env`
+
 - Workspace members auto-detected by `members = ["day*", "shared"]` pattern
 
 ### Rust-Analyzer Settings (Beginner-Optimized)
@@ -50,8 +53,46 @@ Focused configuration for learning Rust without information overload:
 - Type hints, reborrow hints, expression adjustments (when comfortable with ownership)
 - Advanced inlay hints (closures, discriminants, binding modes)
 
-## Future: GitHub + Pre-commit Setup
+## Git Conventions
 
-1. Make this project a GitHub repository
-2. Set up pre-commit hooks with linting (markdownlint-cli2, taplo)
-3. Hooks run automatically on commit to enforce code quality
+- Use concise, one-line commit messages
+- Example: "Initial commit: Advent of Code 2024 Rust workspace setup"
+
+## Code Quality Enforcement
+
+### Pre-commit Hooks (Active)
+
+**Purpose**: Automatically enforce code quality standards before each commit,
+preventing broken or poorly formatted code from entering the repository.
+
+**Setup Instructions:**
+
+```bash
+# Download latest pre-commit (avoids nodeenv issues with apt version)
+curl -LO https://github.com/pre-commit/pre-commit/releases/download/v4.2.0/pre-commit-4.2.0.pyz
+
+# Install hooks in repository (one-time setup)
+python3 pre-commit-4.2.0.pyz install
+
+# Test hooks manually (optional)
+python3 pre-commit-4.2.0.pyz run --all-files
+```
+
+**What the hooks check:**
+
+- **Rust code**: Formatting (rustfmt) and linting (clippy with strict warnings)
+- **TOML files**: Formatting and linting (taplo)
+- **Markdown files**: Will be added in future updates
+
+**IMPORTANT - Never bypass hooks:**
+
+- Never use `git commit --no-verify` unless absolutely necessary
+- If hooks fail, fix the issues rather than bypassing them
+- This maintains code quality and prevents technical debt
+
+### Future Consideration: Migration to Just Command Runner
+
+If pre-commit hooks become too intrusive or if we want more manual control
+over quality checks, consider migrating to a `justfile`-based approach.
+Replace automatic pre-commit hooks with manual `just check` commands.
+Would require discipline to remember running checks before commits

@@ -1,0 +1,32 @@
+# .pre-commit-config.yaml
+repos:
+  # 1) Markdown linting (markdownlint-cli2 — the maintained successor to v12)
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    # pick the tag you want; v19.1.0 is current, v12.0.0 still exists
+    rev: v0.18.1
+    hooks:
+      - id: markdownlint-cli2       # plain Node install
+      # - id: markdownlint-cli2-docker   # …. or Docker version
+        args: ["--fix"]
+
+  # 2) TOML lint/format with Taplo
+  - repo: https://github.com/ComPWA/taplo-pre-commit
+    rev: v0.9.3                      # last tagged release
+    hooks:
+      - id: taplo-format            # opinionated formatter
+      - id: taplo-lint              # schema-aware linter
+      # docker alternatives also exist (-lint-docker / -format-docker)
+
+  # 3) Rust – rustfmt + Clippy (and optional cargo-check)
+  - repo: https://github.com/doublify/pre-commit-rust
+    rev: v1.0                       # stable tag
+    hooks:
+      - id: fmt                     # runs `cargo fmt`
+      - id: clippy                  # runs `cargo clippy -- -D warnings`
+        args:
+          - "--all-targets"      # Cargo flag
+          - "--all-features"   # uncomment if you really use feature gates
+          - "--"                 # separator » everything after goes to Clippy/rustc
+          - "-D" 
+          - "warnings"      # keep strictness
+      # - id: cargo-check           # quick type-check only
