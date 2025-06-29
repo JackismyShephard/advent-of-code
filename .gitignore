@@ -1,1 +1,4 @@
 /target
+
+# Pre-commit binary (downloaded locally)
+pre-commit-*.pyz

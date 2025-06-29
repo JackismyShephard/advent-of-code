@@ -58,6 +58,14 @@ Focused configuration for learning Rust without information overload:
 - Use concise, one-line commit messages
 - Example: "Initial commit: Advent of Code 2024 Rust workspace setup"
 
+## Development Workflow (For Claude)
+
+- **Always commit changes after completing a task**
+- Stage relevant files with `git add`
+- Create descriptive commit message
+- Push changes to remote repository
+- This ensures progress is saved and quality hooks are enforced
+
 ## Code Quality Enforcement
 
 ### Pre-commit Hooks (Active)
