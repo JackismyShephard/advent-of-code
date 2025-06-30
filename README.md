@@ -24,10 +24,15 @@ cargo run -p dayXX
 2. Copy `day01/Cargo.toml` and update the name
 3. Create `dayXX/src/main.rs` with your solution
 4. Add input file as `dayXX/input.txt`
+5. Add problem description as `dayXX/description.txt`
 
 ## Current Status
 
-- ✅ Day 1: Distance calculation between two sorted lists (result: 11 for example)
+- ✅ Day 1: Complete
+  - Part 1: Distance calculation between sorted lists
+    (result: 11 for example, 1,603,498 for real input)
+  - Part 2: Similarity score using frequency maps
+    (result: 31 for example, 25,574,739 for real input)
 
 ## Setup Notes
 

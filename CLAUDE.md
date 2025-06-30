@@ -13,7 +13,7 @@ tutorials.
 
 ## Implementation Status
 
-- ✅ Day 1: Completed (distance between sorted lists)
+- ✅ Day 1: Completed (Part 1: distance between sorted lists, Part 2: similarity score)
 - ❌ Days 2-25: Need to be implemented
 
 ## Next Steps for New Days
@@ -22,7 +22,8 @@ tutorials.
 2. Copy `day01/Cargo.toml` and update package name
 3. Create `dayXX/src/main.rs` with solution
 4. Add `dayXX/input.txt` with puzzle input from AoC website
-5. Test with example first, then run on real input
+5. Add `dayXX/description.txt` with problem description excerpts
+6. Test with example first, then run on real input
 
 ## Setup Notes
 
@@ -65,6 +66,15 @@ Focused configuration for learning Rust without information overload:
 - Create descriptive commit message
 - Push changes to remote repository
 - This ensures progress is saved and quality hooks are enforced
+
+- **IMPORTANT: Always commit ALL files for each day solution:**
+  - `dayXX/src/main.rs` - The solution code
+  - `dayXX/Cargo.toml` - Dependencies
+  - `dayXX/input.txt` - Personal puzzle input
+  - `dayXX/description.txt` - Problem description excerpts
+  - `CLAUDE.md` - Update implementation status
+  - `README.md` - Update current status section
+  - `Cargo.lock` - Dependency lock file
 
 - **When user says "remember" something: Add it to this CLAUDE.md file**
 - User instructions prefixed with "remember" should be documented here
