@@ -72,5 +72,6 @@ python3 pre-commit-4.2.0.pyz run --all-files
 **What the hooks check:**
 
 - **Rust code**: Formatting (rustfmt) and linting (clippy with strict warnings)
+- **Tests**: All unit and integration tests must pass (cargo test)
 - **TOML files**: Formatting and linting (taplo)
 - **Markdown files**: Will be added in future updates

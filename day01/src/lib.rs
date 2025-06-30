@@ -1,0 +1,110 @@
+use anyhow::Result;
+use rustc_hash::FxHashMap;
+use shared::parse_lines;
+
+pub const EXAMPLE_INPUT: &str = "3   4
+4   3
+2   5
+1   3
+3   9
+3   3";
+
+pub fn parse_input(input: &str) -> Result<(Vec<i32>, Vec<i32>)> {
+    let lines = parse_lines(input);
+
+    let mut left_nums: Vec<i32> = Vec::new();
+    let mut right_nums: Vec<i32> = Vec::new();
+
+    // Parse the two columns of numbers
+    for line in lines {
+        let parts: Vec<&str> = line.split_whitespace().collect();
+        if parts.len() == 2 {
+            left_nums.push(parts[0].parse()?);
+            right_nums.push(parts[1].parse()?);
+        }
+    }
+
+    Ok((left_nums, right_nums))
+}
+
+pub fn solve_part1(input: &str) -> Result<i32> {
+    let (mut left_nums, mut right_nums) = parse_input(input)?;
+
+    // Sort both lists
+    left_nums.sort();
+    right_nums.sort();
+
+    // Calculate total distance
+    let total_distance = left_nums
+        .iter()
+        .zip(right_nums.iter())
+        .map(|(left, right)| (left - right).abs())
+        .sum();
+
+    Ok(total_distance)
+}
+
+pub fn solve_part2(input: &str) -> Result<i32> {
+    let (left_nums, right_nums) = parse_input(input)?;
+
+    // Build frequency map for right list
+    let mut right_counts = FxHashMap::default();
+    for &num in &right_nums {
+        *right_counts.entry(num).or_insert(0) += 1;
+    }
+
+    // Build frequency map for left list (optimization for duplicates)
+    let mut left_counts = FxHashMap::default();
+    for &num in &left_nums {
+        *left_counts.entry(num).or_insert(0) += 1;
+    }
+
+    // Calculate similarity score
+    let mut similarity_score = 0;
+    for (&left_num, &left_freq) in &left_counts {
+        let right_freq = right_counts.get(&left_num).unwrap_or(&0);
+        similarity_score += left_num * left_freq * right_freq;
+    }
+
+    Ok(similarity_score)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_part1_example() {
+        let result = solve_part1(EXAMPLE_INPUT).unwrap();
+        assert_eq!(result, 11);
+    }
+
+    #[test]
+    fn test_part2_example() {
+        let result = solve_part2(EXAMPLE_INPUT).unwrap();
+        assert_eq!(result, 31);
+    }
+
+    #[test]
+    fn test_parse_input() {
+        let (left, right) = parse_input(EXAMPLE_INPUT).unwrap();
+        assert_eq!(left, vec![3, 4, 2, 1, 3, 3]);
+        assert_eq!(right, vec![4, 3, 5, 3, 9, 3]);
+    }
+
+    #[test]
+    fn test_part1_real_input() {
+        let input = std::fs::read_to_string("input.txt")
+            .expect("Failed to read input.txt - make sure it exists");
+        let result = solve_part1(&input).unwrap();
+        assert_eq!(result, 1603498);
+    }
+
+    #[test]
+    fn test_part2_real_input() {
+        let input = std::fs::read_to_string("input.txt")
+            .expect("Failed to read input.txt - make sure it exists");
+        let result = solve_part2(&input).unwrap();
+        assert_eq!(result, 25574739);
+    }
+}

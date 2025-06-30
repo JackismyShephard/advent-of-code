@@ -17,7 +17,7 @@ repos:
       - id: taplo-lint              # schema-aware linter
       # docker alternatives also exist (-lint-docker / -format-docker)
 
-  # 3) Rust – rustfmt + Clippy (and optional cargo-check)
+  # 3) Rust – rustfmt + Clippy
   - repo: https://github.com/doublify/pre-commit-rust
     rev: v1.0                       # stable tag
     hooks:
@@ -30,3 +30,13 @@ repos:
           - "-D" 
           - "warnings"      # keep strictness
       # - id: cargo-check           # quick type-check only
+
+  # 4) Custom hook for running tests
+  - repo: local
+    hooks:
+      - id: cargo-test
+        name: cargo test
+        entry: cargo test
+        language: system
+        files: \.rs$
+        pass_filenames: false
