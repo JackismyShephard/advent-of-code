@@ -22,9 +22,11 @@ cargo run -p dayXX
 
 1. Create `dayXX/` directory
 2. Copy `day01/Cargo.toml` and update the name
-3. Create `dayXX/src/main.rs` with your solution
-4. Add input file as `dayXX/input.txt`
-5. Add problem description as `dayXX/description.txt`
+3. Create `dayXX/src/lib.rs` with core logic and EXAMPLE_INPUT constant
+4. Create `dayXX/src/main.rs` with simple runner using lib functions
+5. Create `dayXX/tests/dayXX.rs` with comprehensive tests (example + real input)
+6. Add input file as `dayXX/input.txt`
+7. Add problem description as `dayXX/description.txt`
 
 ## Current Status
 

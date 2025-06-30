@@ -20,10 +20,12 @@ tutorials.
 
 1. Create `dayXX/` directory
 2. Copy `day01/Cargo.toml` and update package name
-3. Create `dayXX/src/main.rs` with solution
-4. Add `dayXX/input.txt` with puzzle input from AoC website
-5. Add `dayXX/description.txt` with problem description excerpts
-6. Test with example first, then run on real input
+3. Create `dayXX/src/lib.rs` with core logic and EXAMPLE_INPUT constant
+4. Create `dayXX/src/main.rs` with simple runner using lib functions
+5. Create `dayXX/tests/dayXX.rs` with comprehensive tests (example + real input)
+6. Add `dayXX/input.txt` with puzzle input from AoC website
+7. Add `dayXX/description.txt` with problem description excerpts
+8. Test with example first, then run on real input
 
 ## Setup Notes
 
