@@ -1,10 +1,10 @@
 //! Day 1: Historian Hysteria
 //!
 //! Solution for Advent of Code 2024 Day 1.
-//! 
+//!
 //! Part 1: Calculate total distance between two sorted lists by pairing up
 //! the smallest numbers and summing the absolute differences.
-//! 
+//!
 //! Part 2: Calculate similarity score by multiplying each number in the left
 //! list by how many times it appears in the right list, then summing.
 
