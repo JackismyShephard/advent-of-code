@@ -1,3 +1,13 @@
+//! Day 1: Historian Hysteria
+//!
+//! Solution for Advent of Code 2024 Day 1.
+//! 
+//! Part 1: Calculate total distance between two sorted lists by pairing up
+//! the smallest numbers and summing the absolute differences.
+//! 
+//! Part 2: Calculate similarity score by multiplying each number in the left
+//! list by how many times it appears in the right list, then summing.
+
 use anyhow::Result;
 use rustc_hash::FxHashMap;
 use shared::parse_lines;
@@ -61,9 +71,26 @@ pub fn solve_part2(input: &str) -> Result<i32> {
 
     // Calculate similarity score
     let mut similarity_score = 0;
-    for (&left_num, &left_freq) in &left_counts {
-        let right_freq = right_counts.get(&left_num).unwrap_or(&0);
+    for (left_num, left_freq) in &left_counts {
+        let right_freq = right_counts.get(left_num).unwrap_or(&0);
         similarity_score += left_num * left_freq * right_freq;
+    }
+
+    Ok(similarity_score)
+}
+
+pub fn solve_part2_naive(input: &str) -> Result<i32> {
+    let (left_nums, right_nums) = parse_input(input)?;
+
+    let mut similarity_score = 0;
+
+    // O(n²) approach: for each number in left list, count occurrences in right list
+    for &left_num in &left_nums {
+        let count = right_nums
+            .iter()
+            .filter(|&&right_num| right_num == left_num)
+            .count() as i32;
+        similarity_score += left_num * count;
     }
 
     Ok(similarity_score)

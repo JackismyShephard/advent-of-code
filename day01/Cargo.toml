@@ -7,3 +7,8 @@ edition.workspace = true
 shared = { path = "../shared" }
 anyhow = { workspace = true }
 rustc-hash = "2.1.1"
+plotters = { version = "0.3.7", default-features = false, features = ["svg_backend", "line_series"] }
+
+[[bench]]
+name = "hashmap_vs_naive"
+harness = false
