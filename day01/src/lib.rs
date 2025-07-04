@@ -25,6 +25,12 @@ pub const EXAMPLE_INPUT: &str = "3   4
 /// Takes input with one pair of integers per line, separated by whitespace,
 /// and separates them into left and right column vectors.
 ///
+/// # Parameters
+/// * `input` - Multi-line string with integer pairs (one pair per line, whitespace-separated)
+///
+/// # Returns
+/// Tuple of (left_column_numbers, right_column_numbers) as Vec<i32>
+///
 /// # Errors
 ///
 /// Returns `Err` if any value cannot be parsed as an `i32`.
@@ -61,6 +67,12 @@ pub fn parse_input(input: &str) -> Result<(Vec<i32>, Vec<i32>)> {
 /// The function sorts both lists independently and then sums the absolute differences
 /// of corresponding elements when paired by position.
 ///
+/// # Parameters
+/// * `input` - Multi-line string containing integer pairs (whitespace-separated)
+///
+/// # Returns
+/// Total distance as the sum of absolute differences between sorted pairs
+///
 /// # Errors
 ///
 /// Returns `Err` if input parsing fails.
@@ -93,6 +105,12 @@ pub fn solve_part1(input: &str) -> Result<i32> {
 ///
 /// Multiplies each number in the left list by how many times it appears in the right list.
 /// Uses hash maps for efficient frequency counting and handles duplicate values optimally.
+///
+/// # Parameters
+/// * `input` - Multi-line string containing integer pairs (whitespace-separated)
+///
+/// # Returns
+/// Similarity score as the sum of (left_number × left_frequency × right_frequency)
 ///
 /// # Errors
 ///
@@ -136,6 +154,12 @@ pub fn solve_part2(input: &str) -> Result<i32> {
 /// Naive O(n²) implementation of Part 2 for performance comparison.
 ///
 /// Uses nested iteration to count occurrences without hash map optimization.
+///
+/// # Parameters
+/// * `input` - Multi-line string containing integer pairs (whitespace-separated)
+///
+/// # Returns
+/// Similarity score calculated using the naive O(n²) algorithm
 ///
 /// # Errors
 ///

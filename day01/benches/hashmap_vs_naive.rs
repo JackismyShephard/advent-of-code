@@ -44,6 +44,12 @@ fn main() -> Result<()> {
 ///
 /// Creates deterministic but varied integer pairs using modular arithmetic
 /// to ensure realistic distribution while maintaining reproducibility.
+///
+/// # Parameters
+/// * `size` - Number of input pairs to generate for the test dataset
+///
+/// # Returns
+/// Newline-separated string of integer pairs in "left right" format
 fn generate_test_input(size: usize) -> String {
     (0..size)
         .map(|i| format!("{} {}", (i % 9999) + 1, ((i * 7) % 9999) + 1))
@@ -55,19 +61,27 @@ fn generate_test_input(size: usize) -> String {
 ///
 /// Performs warmup iterations to stabilize CPU performance, then takes multiple
 /// timing samples and returns the median to reduce noise from system interference.
-fn benchmark_function<F>(f: F, input: &str, samples: usize) -> f64
+///
+/// # Parameters
+/// * `algorithm_fn` - The function to benchmark (takes input string, returns result)
+/// * `test_input` - The input data to run the algorithm on
+/// * `sample_count` - Number of timing samples to take for statistical accuracy
+///
+/// # Returns
+/// Median execution time in nanoseconds
+fn benchmark_function<F>(algorithm_fn: F, test_input: &str, sample_count: usize) -> f64
 where
     F: Fn(&str) -> Result<i32, anyhow::Error>,
 {
     // Warmup
     for _ in 0..WARMUP_ITERATIONS {
-        let _ = black_box(f(black_box(input)));
+        let _ = black_box(algorithm_fn(black_box(test_input)));
     }
 
-    let mut times: Vec<f64> = (0..samples)
+    let mut times: Vec<f64> = (0..sample_count)
         .map(|_| {
             let start = Instant::now();
-            let _ = black_box(f(black_box(input)));
+            let _ = black_box(algorithm_fn(black_box(test_input)));
             start.elapsed().as_nanos() as f64
         })
         .collect();
@@ -80,6 +94,12 @@ where
 ///
 /// Generates an SVG chart with logarithmic y-axis showing execution times,
 /// performance lines for both algorithms, and speedup factor labels.
+///
+/// # Parameters
+/// * `results` - Benchmark data as tuples of (input_size, hashmap_time_ns, naive_time_ns, speedup_factor)
+///
+/// # Returns
+/// `Ok(())` if chart creation succeeds
 ///
 /// # Errors
 ///
@@ -112,6 +132,12 @@ fn create_performance_plot(results: &[(usize, f64, f64, f64)]) -> Result<()> {
 ///
 /// Creates the SVG backend, determines appropriate axis ranges from data,
 /// and configures the chart with logarithmic y-axis scaling.
+///
+/// # Parameters
+/// * `results` - Benchmark data used to determine chart axis ranges and scaling
+///
+/// # Returns
+/// Tuple of (drawing_area, configured_chart) ready for data plotting
 ///
 /// # Errors
 ///
@@ -154,6 +180,13 @@ fn setup_chart(
 /// Extracts timing data, applies logarithmic transformation, and draws
 /// lines with points for both algorithm implementations.
 ///
+/// # Parameters
+/// * `chart` - Mutable reference to the chart context for drawing operations
+/// * `results` - Benchmark data as tuples of (input_size, hashmap_time_ns, naive_time_ns, speedup_factor)
+///
+/// # Returns
+/// `Ok(())` if plotting succeeds
+///
 /// # Errors
 ///
 /// Returns `Err` if plotting fails.
@@ -181,6 +214,13 @@ fn plot_performance_lines(
 /// Places text annotations showing the performance improvement factor
 /// at each data point for easy interpretation of results.
 ///
+/// # Parameters
+/// * `chart` - Mutable reference to the chart context for drawing text labels
+/// * `results` - Benchmark data as tuples of (input_size, hashmap_time_ns, naive_time_ns, speedup_factor)
+///
+/// # Returns
+/// `Ok(())` if label rendering succeeds
+///
 /// # Errors
 ///
 /// Returns `Err` if label rendering fails.
@@ -204,6 +244,15 @@ fn add_speedup_labels(chart: &mut PlotChart<'_>, results: &[(usize, f64, f64, f6
 ///
 /// Helper function that creates both the line series and point markers
 /// for a single algorithm's performance data.
+///
+/// # Parameters
+/// * `chart` - Mutable reference to the chart context for drawing operations
+/// * `points` - Array of (x, y) coordinates representing algorithm performance data
+/// * `color` - Reference to the RGB color for drawing the line and markers
+/// * `label` - Text label for the legend entry describing this algorithm
+///
+/// # Returns
+/// `Ok(())` if drawing succeeds
 ///
 /// # Errors
 ///

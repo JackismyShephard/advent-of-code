@@ -32,6 +32,7 @@ tutorials.
 ## Setup Notes
 
 - **Rust toolchain**:
+
   - Install via: `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
   - Restart shell or run: `source ~/.cargo/env`
 
@@ -66,12 +67,14 @@ Focused configuration for learning Rust without information overload:
 ## Development Workflow (For Claude)
 
 - **Always commit changes after completing a task**
-- Stage relevant files with `git add`
-- Create descriptive commit message
-- Push changes to remote repository
-- This ensures progress is saved and quality hooks are enforced
+
+  - Stage relevant files with `git add`
+  - Create descriptive commit message
+  - Push changes to remote repository
+  - This ensures progress is saved and quality hooks are enforced
 
 - **IMPORTANT: Always commit ALL files for each day solution:**
+
   - `dayXX/src/main.rs` - The solution code
   - `dayXX/Cargo.toml` - Dependencies
   - `dayXX/input.txt` - Personal puzzle input
@@ -81,8 +84,9 @@ Focused configuration for learning Rust without information overload:
   - `Cargo.lock` - Dependency lock file
 
 - **When user says "remember" something: Add it to this CLAUDE.md file**
-- User instructions prefixed with "remember" should be documented here
-- This creates a persistent record of important project-specific guidance
+
+  - User instructions prefixed with "remember" should be documented here
+  - This creates a persistent record of important project-specific guidance
 
 ## Code Quality Enforcement
 
@@ -134,17 +138,25 @@ Following Rust ecosystem conventions for writing high-quality documentation:
 
 1. **Brief description** - What the function does (first paragraph)
 2. **Detailed explanation** - How it works, algorithms used, performance characteristics
-3. **`# Errors`** - When function returns `Result<T, E>` (fallible functions)
-4. **`# Panics`** - When function can panic (if applicable)
-5. **`# Examples`** - Code examples showing usage (most important!)
+3. **`# Parameters`** - **Explicit semantic documentation of what each
+   parameter represents**
+4. **`# Returns`** - **Explicit description of return value meaning and units**
+5. **`# Errors`** - When function returns `Result<T, E>` (fallible functions)
+6. **`# Panics`** - When function can panic (if applicable)
+7. **`# Examples`** - Code examples showing usage (most important!)
    - Use `# use` to import necessary items
-6. **`# Safety`** - For unsafe functions only
+8. **`# Safety`** - For unsafe functions only
+
+#### Project-Specific Enhancement: Explicit Semantic Documentation
+
+**Philosophy**: While Rust's type system is excellent, it doesn't always convey
+the *semantic meaning* of parameters and return values. We enhance standard Rust
+docs with explicit parameter and return documentation.
 
 #### What NOT to include
 
-- **`# Arguments`** sections - Not standard in Rust ecosystem
-- **`# Returns`** sections - Function signature is self-documenting
-- Redundant parameter descriptions - Good parameter names are sufficient
+- Redundant type information - Function signature is self-documenting for types
+- Overly verbose descriptions - Keep semantic descriptions concise but complete
 
 ### Generating Documentation
 
