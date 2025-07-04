@@ -1,3 +1,4 @@
+use anyhow::Result;
 use day01::{solve_part2, solve_part2_naive};
 use plotters::coord::types::RangedCoordf64;
 use plotters::prelude::*;
@@ -11,7 +12,7 @@ const LEGEND_LINE_LENGTH: i32 = 10;
 
 type PlotChart<'a> = ChartContext<'a, SVGBackend<'a>, Cartesian2d<RangedCoordf64, RangedCoordf64>>;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<()> {
     let mut results = Vec::new();
 
     println!("Size\tHashmap (μs)\tNaive (μs)\tSpeedup");
@@ -26,11 +27,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let speedup = naive_time / hashmap_time;
 
         results.push((size, hashmap_time, naive_time, speedup));
-        println!(
-            "{size}\t{:.2}\t\t{:.2}\t\t{speedup:.1}x",
-            hashmap_time / 1000.0,
-            naive_time / 1000.0
-        );
+
+        let hashmap_us = hashmap_time / 1000.0;
+        let naive_us = naive_time / 1000.0;
+
+        println!("{size}\t{hashmap_us:.2}\t\t{naive_us:.2}\t\t{speedup:.1}x");
     }
 
     create_performance_plot(&results)?;
@@ -46,7 +47,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 fn generate_test_input(size: usize) -> String {
     (0..size)
         .map(|i| format!("{} {}", (i % 9999) + 1, ((i * 7) % 9999) + 1))
-        .collect::<Vec<_>>()
+        .collect::<Vec<String>>()
         .join("\n")
 }
 
@@ -71,7 +72,7 @@ where
         })
         .collect();
 
-    times.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    times.sort_by(|a, b| a.total_cmp(b));
     times[times.len() / 2]
 }
 
@@ -83,15 +84,13 @@ where
 /// # Errors
 ///
 /// Returns `Err` if chart creation fails.
-fn create_performance_plot(
-    results: &[(usize, f64, f64, f64)],
-) -> Result<(), Box<dyn std::error::Error>> {
+fn create_performance_plot(results: &[(usize, f64, f64, f64)]) -> Result<()> {
     let (root, mut chart) = setup_chart(results)?;
 
     chart
         .configure_mesh()
         .x_desc("Input Size (n)")
-        .y_desc("Time (nanoseconds)")
+        .y_desc("Time (microseconds)")
         .x_label_formatter(&|x| format!("{x:.0}"))
         .y_label_formatter(&|y| format!("{:.0}", 10f64.powf(*y) / 1000.0))
         .draw()?;
@@ -119,17 +118,18 @@ fn create_performance_plot(
 /// Returns `Err` if chart setup fails.
 fn setup_chart(
     results: &[(usize, f64, f64, f64)],
-) -> Result<
-    (
-        DrawingArea<SVGBackend, plotters::coord::Shift>,
-        PlotChart<'_>,
-    ),
-    Box<dyn std::error::Error>,
-> {
+) -> Result<(
+    DrawingArea<SVGBackend, plotters::coord::Shift>,
+    PlotChart<'_>,
+)> {
     let root = SVGBackend::new("performance_comparison.svg", (800, 600)).into_drawing_area();
     root.fill(&WHITE)?;
 
-    let max_size = results.iter().map(|(size, _, _, _)| *size).max().unwrap();
+    let max_size = results
+        .iter()
+        .map(|(size, _, _, _)| *size)
+        .max()
+        .ok_or_else(|| anyhow::anyhow!("No benchmark results to plot"))?;
     let times: Vec<f64> = results.iter().flat_map(|(_, h, n, _)| [*h, *n]).collect();
     let (min_time, max_time) = (
         times.iter().copied().fold(f64::INFINITY, f64::min),
@@ -137,10 +137,11 @@ fn setup_chart(
     );
 
     let chart = ChartBuilder::on(&root)
-        .caption("Performance Comparison", ("sans-serif", 30))
+        .caption("Performance Comparison", ("sans-serif", 24))
         .margin(50)
+        .margin_top(80)
         .x_label_area_size(60)
-        .y_label_area_size(80)
+        .y_label_area_size(60)
         .build_cartesian_2d(
             0f64..(max_size as f64 * 1.1),
             (min_time * 0.5).log10()..(max_time * 2.0).log10(),
@@ -159,7 +160,7 @@ fn setup_chart(
 fn plot_performance_lines(
     chart: &mut PlotChart<'_>,
     results: &[(usize, f64, f64, f64)],
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<()> {
     let hashmap_points: Vec<(f64, f64)> = results
         .iter()
         .map(|(size, h, _, _)| (*size as f64, h.log10()))
@@ -183,17 +184,19 @@ fn plot_performance_lines(
 /// # Errors
 ///
 /// Returns `Err` if label rendering fails.
-fn add_speedup_labels(
-    chart: &mut PlotChart<'_>,
-    results: &[(usize, f64, f64, f64)],
-) -> Result<(), Box<dyn std::error::Error>> {
-    for (size, _, naive_time, speedup) in results {
-        chart.draw_series(std::iter::once(Text::new(
-            format!("{speedup:.1}x"),
-            (*size as f64, naive_time.log10() * 1.05),
-            ("sans-serif", 12),
-        )))?;
-    }
+fn add_speedup_labels(chart: &mut PlotChart<'_>, results: &[(usize, f64, f64, f64)]) -> Result<()> {
+    let labels: Vec<_> = results
+        .iter()
+        .map(|(size, _, naive_time, speedup)| {
+            Text::new(
+                format!("{speedup:.1}x"),
+                (*size as f64, naive_time.log10() * 1.05),
+                ("sans-serif", 12),
+            )
+        })
+        .collect();
+
+    chart.draw_series(labels)?;
     Ok(())
 }
 
@@ -210,7 +213,7 @@ fn draw_line_with_points<'a>(
     points: &[(f64, f64)],
     color: &'a RGBColor,
     label: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<()> {
     chart
         .draw_series(LineSeries::new(points.iter().copied(), color))?
         .label(label)
