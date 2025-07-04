@@ -43,11 +43,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///
 /// Creates deterministic but varied integer pairs using modular arithmetic
 /// to ensure realistic distribution while maintaining reproducibility.
-///
-/// # Arguments
-///
-/// * `size: usize` - Number of input lines to generate
-///
 fn generate_test_input(size: usize) -> String {
     (0..size)
         .map(|i| format!("{} {}", (i % 9999) + 1, ((i * 7) % 9999) + 1))
@@ -59,13 +54,6 @@ fn generate_test_input(size: usize) -> String {
 ///
 /// Performs warmup iterations to stabilize CPU performance, then takes multiple
 /// timing samples and returns the median to reduce noise from system interference.
-///
-/// # Arguments
-///
-/// * `f: F` - Function to benchmark that takes string input and returns a Result
-/// * `input: &str` - Input string to pass to the function
-/// * `samples: usize` - Number of timing samples to collect
-///
 fn benchmark_function<F>(f: F, input: &str, samples: usize) -> f64
 where
     F: Fn(&str) -> Result<i32, anyhow::Error>,
@@ -91,10 +79,6 @@ where
 ///
 /// Generates an SVG chart with logarithmic y-axis showing execution times,
 /// performance lines for both algorithms, and speedup factor labels.
-///
-/// # Arguments
-///
-/// * `results: &[(usize, f64, f64, f64)]` - Benchmark results as tuples of (size, hashmap_time, naive_time, speedup)
 ///
 /// # Errors
 ///
@@ -129,10 +113,6 @@ fn create_performance_plot(
 ///
 /// Creates the SVG backend, determines appropriate axis ranges from data,
 /// and configures the chart with logarithmic y-axis scaling.
-///
-/// # Arguments
-///
-/// * `results: &[(usize, f64, f64, f64)]` - Benchmark data used to determine axis ranges
 ///
 /// # Errors
 ///
@@ -173,11 +153,6 @@ fn setup_chart(
 /// Extracts timing data, applies logarithmic transformation, and draws
 /// lines with points for both algorithm implementations.
 ///
-/// # Arguments
-///
-/// * `chart: &mut PlotChart<'_>` - Mutable reference to the chart context
-/// * `results: &[(usize, f64, f64, f64)]` - Benchmark results containing timing data
-///
 /// # Errors
 ///
 /// Returns `Err` if plotting fails.
@@ -205,11 +180,6 @@ fn plot_performance_lines(
 /// Places text annotations showing the performance improvement factor
 /// at each data point for easy interpretation of results.
 ///
-/// # Arguments
-///
-/// * `chart: &mut PlotChart<'_>` - Mutable reference to the chart context
-/// * `results: &[(usize, f64, f64, f64)]` - Benchmark results containing speedup factors
-///
 /// # Errors
 ///
 /// Returns `Err` if label rendering fails.
@@ -231,13 +201,6 @@ fn add_speedup_labels(
 ///
 /// Helper function that creates both the line series and point markers
 /// for a single algorithm's performance data.
-///
-/// # Arguments
-///
-/// * `chart: &mut PlotChart<'a>` - Mutable reference to the chart context
-/// * `points: &[(f64, f64)]` - Coordinate pairs for the line
-/// * `color: &'a RGBColor` - Line and marker color
-/// * `label: &str` - Legend label for this line
 ///
 /// # Errors
 ///
