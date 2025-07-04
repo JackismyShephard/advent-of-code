@@ -9,3 +9,7 @@ rust-version = "1.76"
 
 [workspace.dependencies]
 anyhow = "1.0"
+plotters = { version = "0.3.7", default-features = false, features = [
+  "svg_backend",
+  "line_series",
+] }

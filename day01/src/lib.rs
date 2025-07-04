@@ -10,7 +10,7 @@
 
 use anyhow::Result;
 use rustc_hash::FxHashMap;
-use shared::parse_lines;
+use shared::input::parse_lines;
 
 /// Example input from the problem statement used for testing and documentation.
 pub const EXAMPLE_INPUT: &str = "3   4

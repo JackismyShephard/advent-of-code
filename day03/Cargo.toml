@@ -1,14 +1,9 @@
 [package]
-name = "day01"
+name = "day03"
 version.workspace = true
 edition.workspace = true
 
 [dependencies]
 shared = { path = "../shared" }
 anyhow = { workspace = true }
-rustc-hash = "2.1.1"
-plotters = { workspace = true }
-
-[[bench]]
-name = "hashmap_vs_naive"
-harness = false
+regex = "1.0"

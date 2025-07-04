@@ -16,7 +16,9 @@ tutorials.
 ## Implementation Status
 
 - ✅ Day 1: Completed (Part 1: distance between sorted lists, Part 2: similarity score)
-- ❌ Days 2-25: Need to be implemented
+- ✅ Day 2: Completed (Part 1: reactor safety report analysis, Part 2: Problem Dampener)
+- ✅ Day 3: Completed (Part 1: corrupted memory mul instruction parsing)
+- ❌ Days 4-25: Need to be implemented
 
 ## Next Steps for New Days
 
@@ -63,6 +65,7 @@ Focused configuration for learning Rust without information overload:
 
 - Use concise, one-line commit messages
 - Example: "Initial commit: Advent of Code 2024 Rust workspace setup"
+- **NEVER include co-authoring or Claude references in commit messages**
 
 ## Development Workflow (For Claude)
 
@@ -87,6 +90,12 @@ Focused configuration for learning Rust without information overload:
 
   - User instructions prefixed with "remember" should be documented here
   - This creates a persistent record of important project-specific guidance
+
+- **Remember: How to write commit messages properly**
+  - Use concise, one-line commit messages following project Git Conventions
+  - NEVER include co-authoring or Claude references in commit messages
+  - Example: "Replace functional implementation with optimal O(n) algorithm"
+  - Keep it brief and descriptive of what was actually done
 
 ## Code Quality Enforcement
 

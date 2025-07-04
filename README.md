@@ -40,6 +40,10 @@ cargo bench -p dayXX
     (result: 31 for example, 25,574,739 for real input)
   - Performance benchmark: O(n) vs O(n²) comparison with visual graph generation
 
+- ✅ Day 2: Complete
+  - Part 1: Reactor safety report analysis
+    (result: 2 for example, 686 for real input)
+
 ## Performance Analysis
 
 Some days include performance benchmarks comparing different algorithmic approaches:
