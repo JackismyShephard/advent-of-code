@@ -10,6 +10,8 @@ tutorials.
 - Rust workspace with separate packages for each day
 - `shared/` package contains common utilities (input parsing, etc.)
 - Run with: `cargo run -p dayXX`
+- Test with: `cargo test -p dayXX`
+- Benchmark with: `cargo bench -p dayXX`
 
 ## Implementation Status
 
@@ -121,3 +123,49 @@ If pre-commit hooks become too intrusive or if we want more manual control
 over quality checks, consider migrating to a `justfile`-based approach.
 Replace automatic pre-commit hooks with manual `just check` commands.
 Would require discipline to remember running checks before commits
+
+## Documentation Best Practices
+
+### Rust Documentation Standards
+
+Following Rust ecosystem conventions for writing high-quality documentation:
+
+#### Standard Documentation Sections (in order)
+
+1. **Brief description** - What the function does (first paragraph)
+2. **Detailed explanation** - How it works, algorithms used, performance characteristics
+3. **`# Errors`** - When function returns `Result<T, E>` (fallible functions)
+4. **`# Panics`** - When function can panic (if applicable)
+5. **`# Examples`** - Code examples showing usage (most important!)
+   - Use `# use` to import necessary items
+6. **`# Safety`** - For unsafe functions only
+
+#### What NOT to include
+
+- **`# Arguments`** sections - Not standard in Rust ecosystem
+- **`# Returns`** sections - Function signature is self-documenting
+- Redundant parameter descriptions - Good parameter names are sufficient
+
+### Generating Documentation
+
+```bash
+# Generate and open documentation in browser
+cargo doc --no-deps --open -p dayXX
+
+# Generate documentation for all packages
+cargo doc --no-deps
+```
+
+#### WSL-Specific Documentation Viewing
+
+If `cargo doc --open` fails with permission errors in WSL:
+
+```bash
+# Fix permissions
+sudo chown -R $USER:$USER target/
+
+# Install wslu and use wslview
+sudo apt install wslu
+cargo doc --no-deps
+wslview target/doc/dayXX/index.html
+```

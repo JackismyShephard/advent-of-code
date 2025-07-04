@@ -12,6 +12,7 @@ use anyhow::Result;
 use rustc_hash::FxHashMap;
 use shared::parse_lines;
 
+/// Example input from the problem statement used for testing and documentation.
 pub const EXAMPLE_INPUT: &str = "3   4
 4   3
 2   5
@@ -19,6 +20,24 @@ pub const EXAMPLE_INPUT: &str = "3   4
 3   9
 3   3";
 
+/// Parses the input string into two separate lists of integers (left and right columns).
+///
+/// Takes input with one pair of integers per line, separated by whitespace,
+/// and separates them into left and right column vectors.
+///
+/// # Errors
+///
+/// Returns `Err` if any value cannot be parsed as an `i32`.
+///
+/// # Examples
+///
+/// ```
+/// # use day01::parse_input;
+/// let input = "1 2\n3 4";
+/// let (left, right) = parse_input(input).unwrap();
+/// assert_eq!(left, vec![1, 3]);
+/// assert_eq!(right, vec![2, 4]);
+/// ```
 pub fn parse_input(input: &str) -> Result<(Vec<i32>, Vec<i32>)> {
     let lines = parse_lines(input);
 
@@ -37,6 +56,22 @@ pub fn parse_input(input: &str) -> Result<(Vec<i32>, Vec<i32>)> {
     Ok((left_nums, right_nums))
 }
 
+/// Solves Part 1: Calculates the total distance between the sorted left and right lists.
+///
+/// The function sorts both lists independently and then sums the absolute differences
+/// of corresponding elements when paired by position.
+///
+/// # Errors
+///
+/// Returns `Err` if input parsing fails.
+///
+/// # Examples
+///
+/// ```
+/// # use day01::solve_part1;
+/// let input = "1 3\n2 5";
+/// assert_eq!(solve_part1(input).unwrap(), 5); // |1-3| + |2-5| = 2 + 3 = 5
+/// ```
 pub fn solve_part1(input: &str) -> Result<i32> {
     let (mut left_nums, mut right_nums) = parse_input(input)?;
 
@@ -54,6 +89,25 @@ pub fn solve_part1(input: &str) -> Result<i32> {
     Ok(total_distance)
 }
 
+/// Solves Part 2: Calculates a similarity score based on frequency matching.
+///
+/// Multiplies each number in the left list by how many times it appears in the right list.
+/// Uses hash maps for efficient frequency counting and handles duplicate values optimally.
+///
+/// # Errors
+///
+/// Returns `Err` if input parsing fails.
+///
+/// # Examples
+///
+/// ```
+/// # use day01::solve_part2;
+/// let input = "3 3\n4 3\n2 3";
+/// // 3 appears 3 times in right list: 3*3 = 9
+/// // 4 appears 0 times in right list: 4*0 = 0
+/// // 2 appears 0 times in right list: 2*0 = 0
+/// assert_eq!(solve_part2(input).unwrap(), 9); // 9 + 0 + 0 = 9
+/// ```
 pub fn solve_part2(input: &str) -> Result<i32> {
     let (left_nums, right_nums) = parse_input(input)?;
 
@@ -79,16 +133,31 @@ pub fn solve_part2(input: &str) -> Result<i32> {
     Ok(similarity_score)
 }
 
+/// Naive O(n²) implementation of Part 2 for performance comparison.
+///
+/// Uses nested iteration to count occurrences without hash map optimization.
+///
+/// # Errors
+///
+/// Returns `Err` if input parsing fails.
+///
+/// # Examples
+///
+/// ```
+/// # use day01::solve_part2_naive;
+/// let input = "3 3\n4 3\n2 3";
+/// assert_eq!(solve_part2_naive(input).unwrap(), 9); // Same result as optimized version
+/// ```
 pub fn solve_part2_naive(input: &str) -> Result<i32> {
     let (left_nums, right_nums) = parse_input(input)?;
 
     let mut similarity_score = 0;
 
     // O(n²) approach: for each number in left list, count occurrences in right list
-    for &left_num in &left_nums {
+    for left_num in &left_nums {
         let count = right_nums
             .iter()
-            .filter(|&&right_num| right_num == left_num)
+            .filter(|&right_num| right_num == left_num)
             .count() as i32;
         similarity_score += left_num * count;
     }

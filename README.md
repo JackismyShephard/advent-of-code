@@ -11,11 +11,14 @@ Learning Rust through AoC 2024 challenges!
 ## Running Solutions
 
 ```bash
-# Run day 1
-cargo run -p day01
-
-# Run any day
+# Run solution
 cargo run -p dayXX
+
+# Run tests
+cargo test -p dayXX
+
+# Run benchmarks
+cargo bench -p dayXX
 ```
 
 ## Adding New Days
@@ -35,6 +38,15 @@ cargo run -p dayXX
     (result: 11 for example, 1,603,498 for real input)
   - Part 2: Similarity score using frequency maps
     (result: 31 for example, 25,574,739 for real input)
+  - Performance benchmark: O(n) vs O(n²) comparison with visual graph generation
+
+## Performance Analysis
+
+Some days include performance benchmarks comparing different algorithmic approaches:
+
+- **Day 1**: Run `cargo bench -p day01` to generate `performance_comparison.svg`
+- Shows performance scaling between optimized hashmap approach vs naive nested loops
+- Demonstrates clear O(n) vs O(n²) performance differences with speedup factors
 
 ## Setup Notes
 
@@ -77,3 +89,30 @@ python3 pre-commit-4.2.0.pyz run --all-files
 - **Tests**: All unit and integration tests must pass (cargo test)
 - **TOML files**: Formatting and linting (taplo)
 - **Markdown files**: Will be added in future updates
+
+## Documentation
+
+### Generating Documentation
+
+```bash
+
+# Generate and open documentation in browser
+cargo doc --no-deps --open -p dayXX
+
+# Generate documentation for all packages
+cargo doc --no-deps
+```
+
+### WSL-Specific Documentation Viewing
+
+If `cargo doc --open` fails with permission errors in WSL:
+
+```bash
+# Fix permissions
+sudo chown -R $USER:$USER target/
+
+# Install wslu and use wslview
+sudo apt install wslu
+cargo doc --no-deps
+wslview target/doc/dayXX/index.html
+```
