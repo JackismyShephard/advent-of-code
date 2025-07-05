@@ -7,7 +7,6 @@ edition.workspace = true
 shared = { path = "../shared" }
 anyhow = { workspace = true }
 rustc-hash = "2.1.1"
-plotters = { workspace = true }
 
 [[bench]]
 name = "hashmap_vs_naive"

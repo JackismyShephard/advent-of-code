@@ -44,7 +44,7 @@ pub fn create_dual_algorithm_plot(
     let filename = format!("day{day:02}_performance_comparison.svg");
     let title = format!("Day {day}: {algo1_name} vs {algo2_name} Algorithm Performance");
 
-    let (root, mut chart) = setup_performance_chart(&filename, &title, results)?;
+    let (root, mut chart) = setup_dual_performance_chart(&filename, &title, results)?;
 
     // Configure mesh for performance benchmark charts
     chart
@@ -73,7 +73,7 @@ pub fn create_dual_algorithm_plot(
     Ok(())
 }
 
-/// Sets up the chart layout and coordinate system for performance benchmarks.
+/// Sets up the chart layout and coordinate system for dual-algorithm performance benchmarks.
 ///
 /// Creates the SVG backend, determines appropriate axis ranges from timing data,
 /// and builds the chart with logarithmic y-axis scaling for performance visualization.
@@ -89,7 +89,7 @@ pub fn create_dual_algorithm_plot(
 /// # Errors
 ///
 /// Returns `Err` if chart setup fails.
-fn setup_performance_chart<'a>(
+fn setup_dual_performance_chart<'a>(
     filename: &'a str,
     title: &'a str,
     results: &[(usize, f64, f64, f64)],
@@ -135,8 +135,8 @@ fn setup_performance_chart<'a>(
 ///
 /// # Parameters
 /// * `chart` - Mutable reference to the chart context for drawing operations
-/// * `results` - Benchmark data as tuples of (input_size, time1_ns, time2_ns, speedup_factor)
-/// * `time_index` - Which time column to use (0 for first algorithm, 1 for second)
+/// * `results` - Benchmark data as tuples of (input_size, time1_ns, time2_ns, time3_ns)
+/// * `time_index` - Which time column to use (0 for first algorithm, 1 for second, 2 for third)
 /// * `color` - Color for the line and markers
 /// * `label` - Label for the legend entry
 ///
@@ -155,8 +155,13 @@ fn plot_performance_line<'a>(
 ) -> Result<()> {
     let points: Vec<(f64, f64)> = results
         .iter()
-        .map(|(size, time1, time2, _)| {
-            let time = if time_index == 0 { *time1 } else { *time2 };
+        .map(|(size, time1, time2, time3)| {
+            let time = match time_index {
+                0 => *time1,
+                1 => *time2,
+                2 => *time3,
+                _ => panic!("Invalid time_index: {time_index}. Must be 0, 1, or 2"),
+            };
             (*size as f64, time.log10())
         })
         .collect();

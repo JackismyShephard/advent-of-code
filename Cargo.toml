@@ -13,3 +13,9 @@ plotters = { version = "0.3.7", default-features = false, features = [
   "svg_backend",
   "line_series",
 ] }
+
+# Optimized release profile for better performance
+[profile.release]
+lto = true        # Link-time optimization for better performance
+codegen-units = 1 # Better optimization at cost of compile time
+panic = "abort"   # Smaller binaries, no unwinding overhead

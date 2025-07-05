@@ -40,7 +40,6 @@ name = "day01"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "plotters",
  "rustc-hash",
  "shared",
 ]

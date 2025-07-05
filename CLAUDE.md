@@ -91,12 +91,6 @@ Focused configuration for learning Rust without information overload:
   - User instructions prefixed with "remember" should be documented here
   - This creates a persistent record of important project-specific guidance
 
-- **Remember: How to write commit messages properly**
-  - Use concise, one-line commit messages following project Git Conventions
-  - NEVER include co-authoring or Claude references in commit messages
-  - Example: "Replace functional implementation with optimal O(n) algorithm"
-  - Keep it brief and descriptive of what was actually done
-
 ## Code Quality Enforcement
 
 ### Pre-commit Hooks (Active)
@@ -190,3 +184,77 @@ sudo apt install wslu
 cargo doc --no-deps
 wslview target/doc/dayXX/index.html
 ```
+
+## Performance Optimization & Profiling
+
+**IMPORTANT**: Always use `--release` flag for performance-sensitive code
+
+### Profiling Workflow
+
+#### Step 1: Establish Baseline with Criterion
+
+```bash
+# Add Criterion to Cargo.toml [dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+
+# Create focused benchmarks (see day01/benches/day01_benchmarks.rs)
+cargo bench
+```
+
+#### Step 2: Component-Level Analysis
+
+Create separate benchmarks for each major component to identify bottlenecks:
+
+```rust
+// Example: Break down parsing vs sorting vs calculation
+c.bench_function("parsing_only", |b| {
+    b.iter(|| parse_input(black_box(&input)));
+});
+
+c.bench_function("sorting_only", |b| {
+    b.iter(|| {
+        let mut data = parsed_data.clone();
+        data.sort();
+        black_box(data);
+    });
+});
+```
+
+#### Step 3: Profile-Guided Optimization
+
+Target the **biggest bottleneck first**
+
+#### Step 4: Verify Improvements
+
+```bash
+# Compare original vs optimized implementations
+cargo bench
+
+# Look for consistent 1.2x+ improvements across multiple sizes
+```
+
+### What Generally Doesn't Work for AoC Problems
+
+**Based on Day 1 experiments:**
+
+1. **Parallelization** (0.0-0.7x speedup)
+   - Thread overhead dominates for small datasets
+   - Beneficial only at 500,000+ elements
+   - AoC problems typically 100-10,000 elements
+
+2. **Profile-Guided Optimization (PGO)** (0.96x speedup)
+   - Helps with complex branching patterns
+   - AoC code has simple, predictable control flow
+   - Most time spent in stdlib functions already optimized
+
+3. **Manual micro-optimizations** (1.0-1.1x speedup)
+   - Loop unrolling: LLVM already optimizes
+   - SIMD: Limited benefit for simple operations
+   - Rust's stdlib is already highly optimized
+
+### Optimization Priority (Proven Effective)
+
+1. **Algorithm choice** - O(n) vs O(n²) (day01: 7.5x speedup HashMap vs naive)
+2. **Data structure optimization** - HashMap vs Vec, pre-allocation
+3. **Parsing optimization** - SIMD libraries for known formats (day01: 1.67x speedup)
+4. **Compiler optimizations** - Always use `--release` mode
