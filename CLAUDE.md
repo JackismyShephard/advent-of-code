@@ -17,8 +17,10 @@ tutorials.
 
 - ✅ Day 1: Completed (Part 1: distance between sorted lists, Part 2: similarity score)
 - ✅ Day 2: Completed (Part 1: reactor safety report analysis, Part 2: Problem Dampener)
-- ✅ Day 3: Completed (Part 1: corrupted memory mul instruction parsing)
-- ❌ Days 4-25: Need to be implemented
+- ✅ Day 3: Completed (Part 1: corrupted memory mul instruction parsing,
+  Part 2: do()/don't() conditional processing)
+- ✅ Day 4: Completed (Part 1: XMAS word search in 2D grid)
+- ❌ Days 5-25: Need to be implemented
 
 ## Next Steps for New Days
 
