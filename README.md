@@ -21,16 +21,6 @@ cargo test -p dayXX
 cargo bench -p dayXX
 ```
 
-## Adding New Days
-
-1. Create `dayXX/` directory
-2. Copy `day01/Cargo.toml` and update the name
-3. Create `dayXX/src/lib.rs` with core logic and EXAMPLE_INPUT constant
-4. Create `dayXX/src/main.rs` with simple runner using lib functions
-5. Create `dayXX/tests/dayXX.rs` with comprehensive tests (example + real input)
-6. Add input file as `dayXX/input.txt`
-7. Add problem description as `dayXX/description.txt`
-
 ## Current Status
 
 - ✅ Day 1: Complete
@@ -43,6 +33,25 @@ cargo bench -p dayXX
 - ✅ Day 2: Complete
   - Part 1: Reactor safety report analysis
     (result: 2 for example, 686 for real input)
+  - Part 2: Problem Dampener - allows removing one level to make unsafe reports safe
+    (result: 4 for example, 717 for real input)
+  
+- ✅ Day 3: Complete
+  - Part 1: Corrupted memory mul instruction parsing
+    (result: 161 for example, 190,604,937 for real input)
+  - Part 2: do()/don't() conditional processing
+    (result: 48 for example, 82,857,512 for real input)
+
+## Adding New Days
+
+1. Create `dayXX/` directory
+2. Add problem description as `dayXX/description.txt`
+3. Add input file as `dayXX/input.txt`
+4. Copy `day01/Cargo.toml` and update the name
+5. Create `dayXX/src/lib.rs` with core logic and EXAMPLE_INPUT constant
+6. Create `dayXX/src/main.rs` with simple runner using lib functions
+7. Create `dayXX/tests/dayXX.rs` with comprehensive tests (example + real input)
+8. optionally add `dayXX/benches/bench.rs` for performance benchmarks
 
 ## Performance Analysis
 
@@ -51,6 +60,8 @@ Some days include performance benchmarks comparing different algorithmic approac
 - **Day 1**: Run `cargo bench -p day01` to generate `performance_comparison.svg`
 - Shows performance scaling between optimized hashmap approach vs naive nested loops
 - Demonstrates clear O(n) vs O(n²) performance differences with speedup factors
+- **Day 2**: Run `cargo bench -p day02` for micro-benchmarks
+- Compares different safety checking approaches and Problem Dampener implementations
 
 ## Setup Notes
 
@@ -92,7 +103,7 @@ python3 pre-commit-4.2.0.pyz run --all-files
 - **Rust code**: Formatting (rustfmt) and linting (clippy with strict warnings)
 - **Tests**: All unit and integration tests must pass (cargo test)
 - **TOML files**: Formatting and linting (taplo)
-- **Markdown files**: Will be added in future updates
+- **Markdown files**: Formatting and linting (markdownlint)
 
 ## Documentation
 

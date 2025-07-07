@@ -5,6 +5,10 @@
 //! Part 1: Analyze reactor safety reports to determine which are safe.
 //! A report is safe if levels are all increasing or all decreasing,
 //! and adjacent levels differ by 1-3.
+//!
+//! Part 2: Problem Dampener - allows removing one level to make unsafe
+//! reports safe. If removing any single level makes a report safe,
+//! then the report is considered safe.
 
 use anyhow::Result;
 use shared::input::parse_lines;

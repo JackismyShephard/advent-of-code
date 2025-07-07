@@ -19,19 +19,18 @@ tutorials.
 - ✅ Day 2: Completed (Part 1: reactor safety report analysis, Part 2: Problem Dampener)
 - ✅ Day 3: Completed (Part 1: corrupted memory mul instruction parsing,
   Part 2: do()/don't() conditional processing)
-- ✅ Day 4: Completed (Part 1: XMAS word search in 2D grid)
-- ❌ Days 5-25: Need to be implemented
 
 ## Next Steps for New Days
 
 1. Create `dayXX/` directory
 2. Copy `day01/Cargo.toml` and update package name
-3. Create `dayXX/src/lib.rs` with core logic and EXAMPLE_INPUT constant
-4. Create `dayXX/src/main.rs` with simple runner using lib functions
-5. Create `dayXX/tests/dayXX.rs` with comprehensive tests (example + real input)
-6. Add `dayXX/input.txt` with puzzle input from AoC website
-7. Add `dayXX/description.txt` with problem description excerpts
+3. Add `dayXX/description.txt` with problem description excerpts
+4. Add `dayXX/input.txt` with puzzle input from AoC website
+5. Create `dayXX/src/lib.rs` with core logic and EXAMPLE_INPUT constant
+6. Create `dayXX/src/main.rs` with simple runner using lib functions
+7. Create `dayXX/tests/dayXX.rs` with comprehensive tests (example + real input)
 8. Test with example first, then run on real input
+9. Optionally add `dayXX/benches/bench.rs` for performance benchmarks
 
 ## Setup Notes
 
@@ -63,20 +62,18 @@ Focused configuration for learning Rust without information overload:
 - Type hints, reborrow hints, expression adjustments (when comfortable with ownership)
 - Advanced inlay hints (closures, discriminants, binding modes)
 
-## Git Conventions
-
-- Use concise, one-line commit messages
-- Example: "Initial commit: Advent of Code 2024 Rust workspace setup"
-- **NEVER include co-authoring or Claude references in commit messages**
-
 ## Development Workflow (For Claude)
 
-- **Always commit changes after completing a task**
+- **When user says "remember" something: ALWAYS Add it to this CLAUDE.md file**
 
-  - Stage relevant files with `git add`
-  - Create descriptive commit message
-  - Push changes to remote repository
-  - This ensures progress is saved and quality hooks are enforced
+  - User instructions prefixed with "remember" should be documented here
+  - This creates a persistent record of important project-specific guidance
+
+- **after completing a task ALWAYS**
+
+  - stage relevant files with `git add`
+  - run pre-commit hooks to ensure code quality
+  - DO NOT commit unless asked to do so.
 
 - **IMPORTANT: Always commit ALL files for each day solution:**
 
@@ -88,10 +85,13 @@ Focused configuration for learning Rust without information overload:
   - `README.md` - Update current status section
   - `Cargo.lock` - Dependency lock file
 
-- **When user says "remember" something: Add it to this CLAUDE.md file**
+## Git conventions
 
-  - User instructions prefixed with "remember" should be documented here
-  - This creates a persistent record of important project-specific guidance
+- **ALWAYS follow these git commit message guidelines**
+
+- Use concise, one-line commit messages
+- Example: "Initial commit: Advent of Code 2024 Rust workspace setup"
+- **NEVER include co-authoring or Claude references in commit messages**
 
 ## Code Quality Enforcement
 

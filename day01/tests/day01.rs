@@ -1,4 +1,4 @@
-use day01::{parse_input, solve_part1, solve_part2, EXAMPLE_INPUT};
+use day01::{parse_input, solve_part1, solve_part2, solve_part2_naive, EXAMPLE_INPUT};
 
 #[test]
 fn test_part1_example() {
@@ -32,5 +32,19 @@ fn test_part2_real_input() {
     let input = std::fs::read_to_string("input.txt")
         .expect("Failed to read input.txt - make sure it exists");
     let result = solve_part2(&input).unwrap();
+    assert_eq!(result, 25574739);
+}
+
+#[test]
+fn test_part2_naive_example() {
+    let result = solve_part2_naive(EXAMPLE_INPUT).unwrap();
+    assert_eq!(result, 31);
+}
+
+#[test]
+fn test_part2_naive_real_input() {
+    let input = std::fs::read_to_string("input.txt")
+        .expect("Failed to read input.txt - make sure it exists");
+    let result = solve_part2_naive(&input).unwrap();
     assert_eq!(result, 25574739);
 }
