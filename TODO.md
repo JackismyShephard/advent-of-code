@@ -5,5 +5,7 @@
 * research optimized method for parsing whitespace using memchr?
 * research parallelization with rayon
 * ndarray or grid or similar for 2D grids?
+  * or grid_2d or pathfinding for 2D grids?
 * nalgebra for matrix operations?
 * polars for dataframes?
+* use parametrization for benchmarks and for testing?

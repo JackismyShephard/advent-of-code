@@ -19,6 +19,7 @@ tutorials.
 - ✅ Day 2: Completed (Part 1: reactor safety report analysis, Part 2: Problem Dampener)
 - ✅ Day 3: Completed (Part 1: corrupted memory mul instruction parsing,
   Part 2: do()/don't() conditional processing)
+- 🔄 Day 4: Part 1 Complete (Part 1: XMAS word search in 2D grid, Part 2: TBD)
 
 ## Next Steps for New Days
 
@@ -74,6 +75,15 @@ Focused configuration for learning Rust without information overload:
   - stage relevant files with `git add`
   - run pre-commit hooks to ensure code quality
   - DO NOT commit unless asked to do so.
+
+## Common Linting/Type Errors and Fixes
+
+**Remember these fixes for recurring issues:**
+
+- **`clippy::uninlined_format_args`**: Use `{variable}` instead of `{}",
+  variable` in format strings
+  - ❌ `println!("Result: {}", result);`
+  - ✅ `println!("Result: {result}");`
 
 - **IMPORTANT: Always commit ALL files for each day solution:**
 
@@ -132,6 +142,84 @@ If pre-commit hooks become too intrusive or if we want more manual control
 over quality checks, consider migrating to a `justfile`-based approach.
 Replace automatic pre-commit hooks with manual `just check` commands.
 Would require discipline to remember running checks before commits
+
+## Research Methodology
+
+### How to Conduct Proper Deep Research
+
+**When user requests "ultrathink and research" or "deep research":**
+
+#### Phase 1: Primary Source Investigation
+
+- **RFCs & Language Issues**: Search rust-lang/rfcs for design decisions and rationale
+- **Library Documentation**: Read actual API docs, not just descriptions
+- **Community Forums**: Access Rust Internals, not just user forums
+- **Version History**: Research when features were added and why
+
+#### Phase 2: Cross-Domain Analysis
+
+- **Multiple Domains**: Check game engines, scientific computing, image processing, etc..
+- **Real Codebases**: Examine how major libraries solve problems
+- **Performance Data**: Look for benchmarks and real-world measurements
+- **Historical Context**: Understand evolution of approaches over time
+
+#### Phase 3: Evidence Quality Assessment
+
+- **Authoritative**: Language RFCs, core team discussions, library maintainer posts
+- **Practical**: Stack Overflow with multiple upvotes, real project examples
+- **Speculative**: Blog posts, opinions without backing data
+- **Verify Access**: Confirm you can actually read sources, not just descriptions
+
+#### Phase 4: Honest Reporting
+
+- **Qualify Claims**: "Based on limited sources" vs "definitive consensus"
+- **Cite Limitations**: Note 403 errors, paywalls, incomplete access
+- **Multiple Perspectives**: Present competing viewpoints with evidence
+- **Avoid Extrapolation**: Don't claim "industry standard" from one example
+
+## Rust Signed / unsigned Problem
+
+### Problem Statement
+
+**The Core Tension:**
+
+- **Array indexing**: Requires `usize` (unsigned)
+  - language requirement to prevent negative array access
+- **Arithmetic**: Often needs signed values.
+- casting between signed and unsigned types leads to verbose code
+
+**Why This is a Widespread Issue:**
+
+- Acknowledged across entire Rust community as fundamental pain point
+- Bjarne Stroustrup called unsigned indexing "a mistake in C++ STL design"
+- **No consensus exists** - remains active debate (8+ page discussions)
+- **Professional libraries** lean toward signed coordinates internally
+- **Language team** committed to unsigned for safety
+
+### Research-Backed Solution Patterns
+
+#### Pattern 1: Modern Mixed Operations (Rust 1.66.0+)
+
+```rust
+// Official language solution, stabilized Dec 2022
+let new_row = start_row.checked_add_signed(delta * i)?;
+```
+
+- **Evidence**: Stabilized in rust-lang/rust#87840 after community demand
+- **Use Cases**: Cargo (CPU counts), io::SeekFrom operations
+- **Pros**: Official support, safety guarantees, handles overflow
+- **Cons**: Verbose Option handling, recent adoption
+
+#### Pattern 2: All-Signed Internal (Professional Grid Libraries)
+
+```rust
+struct Coord { x: i32, y: i32 }  // grid_2d crate approach
+```
+
+- **Evidence**: Used by grid_2d, pathfinding, and other professional libraries
+- **Rationale**: Clean arithmetic, convert to usize only at array boundaries  
+- **Pros**: Simple math, proven in production, industry standard
+- **Cons**: Conversion overhead at indexing points
 
 ## Documentation Best Practices
 
@@ -260,3 +348,36 @@ cargo bench
 2. **Data structure optimization** - HashMap vs Vec, pre-allocation
 3. **Parsing optimization** - SIMD libraries for known formats (day01: 1.67x speedup)
 4. **Compiler optimizations** - Always use `--release` mode
+
+## Benchmarking and Plotting Architecture
+
+### Research Summary
+
+**After extensive research comparing plotting and benchmarking approaches, we established our final architecture:**
+
+### **Plotting Decision: Custom Plotters**
+
+- **Chosen Approach**: Custom plotters-based visualization
+- **Key Finding**: Plotters provides equivalent visual quality to Criterion's gnuplot output with greater control and customization
+- **Research Conclusion**: No significant functional differences between gnuplot and plotters backends in Criterion - the choice is purely about dependency management (external vs pure Rust)
+- **Advantages**: Complete control over plot styling, logarithmic scaling, custom annotations, and integration with our benchmarking workflow
+
+### **Benchmarking Decision: Criterion.rs**
+
+- **Chosen Approach**: Criterion.rs for data collection and statistical analysis
+- **Research Context**: Comprehensive comparison of Current Custom Setup vs Criterion vs Divan
+- **Key Factors**:
+  - **Integration**: Criterion provides superior JSON/CSV export for custom plotting integration
+  - **Tooling**: Mature cargo bench support and programmatic data access
+  - **Statistics**: Valuable statistical rigor (bootstrap sampling, confidence intervals, outlier detection)
+  - **Ecosystem**: Industry standard with extensive documentation and community support
+
+### **Final Architecture**
+
+- **Data Collection**: Criterion.rs benchmarks with `harness = false` in Cargo.toml
+- **Data Extraction**: JSON/CSV export from Criterion for custom analysis
+- **Visualization**: Custom plotters-based plots with full control over styling and layout
+- **Workflow**: `cargo bench` → extract data → generate custom plots
+- **Benefits**: Combines Criterion's statistical rigor with our custom visualization capabilities
+
+This hybrid approach maximizes both measurement accuracy and visualization quality while maintaining learning-focused simplicity.

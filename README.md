@@ -42,6 +42,11 @@ cargo bench -p dayXX
   - Part 2: do()/don't() conditional processing
     (result: 48 for example, 82,857,512 for real input)
 
+- 🔄 Day 4: Part 1 Complete
+  - Part 1: XMAS word search in 2D grid (8 directions)
+    (result: 18 for example, TBD for real input)
+  - Part 2: TBD
+
 ## Adding New Days
 
 1. Create `dayXX/` directory
