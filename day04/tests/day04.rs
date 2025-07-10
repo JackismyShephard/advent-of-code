@@ -1,124 +1,167 @@
 use day04::*;
+use rstest::rstest;
+
+// ===== PARSE INPUT TESTS =====
 
 #[test]
-fn test_parse_input() {
-    let input = "ABC\nDEF";
+fn test_parse_input_example() {
+    let grid = parse_input(EXAMPLE_INPUT);
+    assert_eq!(grid.len(), 10); // 10 rows
+    assert_eq!(grid[0].len(), 10); // 10 columns
+    assert_eq!(
+        grid[0],
+        vec!['M', 'M', 'M', 'S', 'X', 'X', 'M', 'A', 'S', 'M']
+    ); // First row
+    assert_eq!(
+        grid[9],
+        vec!['M', 'X', 'M', 'X', 'A', 'X', 'M', 'A', 'S', 'X']
+    ); // Last row
+}
+
+#[rstest]
+#[case("", vec![], "empty input")] // Empty input
+#[case("A", vec![vec!['A']], "single character")] // Single character
+#[case("ABC", vec![vec!['A', 'B', 'C']], "single line")] // Single line
+#[case("A\nB", vec![vec!['A'], vec!['B']], "single column")] // Single column
+#[case("AB\nCD\nEF", vec![vec!['A', 'B'], vec!['C', 'D'], vec!['E', 'F']], "multiple lines")] // Multiple lines
+#[case("ABC\nDE", vec![vec!['A', 'B', 'C'], vec!['D', 'E']], "different line lengths")] // Different line lengths
+fn test_parse_input_edge_cases(
+    #[case] input: &str,
+    #[case] expected: Vec<Vec<char>>,
+    #[case] description: &str,
+) {
     let grid = parse_input(input);
-    assert_eq!(grid, vec![vec!['A', 'B', 'C'], vec!['D', 'E', 'F']]);
+    assert_eq!(grid, expected, "Failed for {description}");
 }
 
-#[test]
-fn test_check_direction_horizontal() {
-    let grid = parse_input("XMAS\nABCD");
+// ===== CORE FUNCTION TESTS =====
 
-    // Test horizontal right - should find "XMAS" from (0,0)
-    assert!(check_direction(&grid, 0, 0, 0, 1));
-
-    // Test horizontal left - no "XMAS" going left from position (0,0)
-    assert!(!check_direction(&grid, 0, 0, 0, -1));
-
-    // Test horizontal left from end position - "SAMX" backwards is "XMAS"
-    let grid2 = parse_input("SAMX\nABCD");
-    assert!(check_direction(&grid2, 0, 3, 0, -1));
+#[rstest]
+#[case("XMAS\nABCD", 0, 0, 0, 1, true)] // Horizontal right: "XMAS" from (0,0)
+#[case("XMAS\nABCD", 0, 0, 0, -1, false)] // Horizontal left: no "XMAS" from (0,0)
+#[case("SAMX\nABCD", 0, 3, 0, -1, true)] // Horizontal left: "SAMX" backwards is "XMAS"
+#[case("X\nM\nA\nS", 0, 0, 1, 0, true)] // Vertical down: "XMAS" from (0,0)
+#[case("X\nM\nA\nS", 0, 0, -1, 0, false)] // Vertical up: no "XMAS" from (0,0)
+#[case("S\nA\nM\nX", 3, 0, -1, 0, true)] // Vertical up: "SAMX" upwards is "XMAS"
+#[case("X...\n.M..\n..A.\n...S", 0, 0, 1, 1, true)] // Diagonal down-right: "XMAS" from (0,0)
+#[case("S...\n.A..\n..M.\n...X", 3, 3, -1, -1, true)] // Diagonal up-left: "SAMX" up-left is "XMAS"
+fn test_check_direction_patterns(
+    #[case] grid_input: &str,
+    #[case] row: usize,
+    #[case] col: usize,
+    #[case] delta_row: isize,
+    #[case] delta_col: isize,
+    #[case] expected: bool,
+) {
+    let grid = parse_input(grid_input);
+    assert_eq!(
+        check_direction(&grid, row, col, delta_row, delta_col),
+        expected
+    );
 }
 
-#[test]
-fn test_check_direction_vertical() {
-    let grid = parse_input("X\nM\nA\nS");
-
-    // Test vertical down - should find "XMAS" from (0,0)
-    assert!(check_direction(&grid, 0, 0, 1, 0));
-
-    // Test vertical up - no "XMAS" going up from position (0,0)
-    assert!(!check_direction(&grid, 0, 0, -1, 0));
-
-    // Test vertical up from bottom - "SAMX" upwards is "XMAS"
-    let grid2 = parse_input("S\nA\nM\nX");
-    assert!(check_direction(&grid2, 3, 0, -1, 0));
-}
-
-#[test]
-fn test_check_direction_diagonal() {
-    let grid = parse_input("X...\n.M..\n..A.\n...S");
-
-    // Test diagonal down-right - should find "XMAS" from (0,0)
-    assert!(check_direction(&grid, 0, 0, 1, 1));
-
-    // Test diagonal up-left from bottom-right - "SAMX" up-left is "XMAS"
-    let grid2 = parse_input("S...\n.A..\n..M.\n...X");
-    assert!(check_direction(&grid2, 3, 3, -1, -1));
-}
-
-#[test]
-fn test_check_direction_bounds() {
-    let grid = parse_input("XM\nAS");
-
-    // Test that bounds checking works - can't fit "XMAS" in a 2x2 grid
-    assert!(!check_direction(&grid, 0, 0, 0, 1)); // would need 4 characters horizontally
-    assert!(!check_direction(&grid, 0, 0, 1, 0)); // would need 4 characters vertically
-    assert!(!check_direction(&grid, 0, 0, 1, 1)); // would need 4 characters diagonally
+#[rstest]
+#[case("XM\nAS", 0, 0, 0, 1, false)] // Horizontal: can't fit "XMAS" in 2x2 grid
+#[case("XM\nAS", 0, 0, 1, 0, false)] // Vertical: can't fit "XMAS" in 2x2 grid
+#[case("XM\nAS", 0, 0, 1, 1, false)] // Diagonal: can't fit "XMAS" in 2x2 grid
+fn test_check_direction_bounds(
+    #[case] grid_input: &str,
+    #[case] row: usize,
+    #[case] col: usize,
+    #[case] delta_row: isize,
+    #[case] delta_col: isize,
+    #[case] expected: bool,
+) {
+    let grid = parse_input(grid_input);
+    assert_eq!(
+        check_direction(&grid, row, col, delta_row, delta_col),
+        expected
+    );
 }
 
 #[test]
 fn test_count_xmas_at_position() {
-    // Test a specific position where we can count exactly
-    let grid = parse_input("SAMX\nAXAS\nMASX\nXSAM");
+    // Test with a grid that has clear XMAS patterns
+    let grid = parse_input("XMAS\nM...\nA...\nS...");
 
-    // Position (1,1) has 'X' - let's check what directions work
-    let count = count_xmas_at_position(&grid, 1, 1);
-    // From (1,1) with 'X': right gives "XMAS" if we have X-M-A-S
-    // Need to manually verify this specific case
-    assert_eq!(count, 0); // This particular grid doesn't have XMAS from (1,1)
+    // Position (0,0) has 'X' - should find XMAS going right and down
+    let count = count_xmas_at_position(&grid, 0, 0);
+    assert_eq!(count, 2); // Right: XMAS, Down: XMAS
+
+    // Position (0,1) has 'M' - should find no XMAS starting from M
+    let count = count_xmas_at_position(&grid, 0, 1);
+    assert_eq!(count, 0); // No XMAS patterns start with M
+}
+
+#[rstest]
+#[case("M.S\n.A.\nM.S", 1, 1, true)] // Center A with X-MAS pattern
+#[case("S.M\n.A.\nS.M", 1, 1, true)] // SAM variant
+#[case("M.M\n.A.\nS.S", 1, 1, true)] // Both diagonals MAS
+#[case("S.S\n.A.\nM.M", 1, 1, true)] // Both diagonals SAM
+#[case("M.S\n.X.\nM.S", 1, 1, false)] // No 'A' at center
+#[case("M.S\n.A.\nX.Y", 1, 1, false)] // Wrong characters on diagonals
+#[case("AB\nCD", 0, 0, false)] // Too small grid
+#[case("AB\nCD", 1, 1, false)] // Out of bounds for pattern
+fn test_is_xmas_pattern_variants(
+    #[case] grid_input: &str,
+    #[case] row: usize,
+    #[case] col: usize,
+    #[case] expected: bool,
+) {
+    let grid = parse_input(grid_input);
+    assert_eq!(is_xmas_pattern(&grid, row, col), expected);
 }
 
 #[test]
-fn test_solve_part1_example() {
-    let result = solve_part1(EXAMPLE_INPUT).unwrap();
-    assert_eq!(result, 18); // Given in problem statement
+fn test_is_xmas_pattern_different_positions() {
+    let input = ".....\n.M.S.\n..A..\n.M.S.\n.....";
+    let grid = parse_input(input);
+    assert!(is_xmas_pattern(&grid, 2, 2)); // X-MAS pattern at (2,2) instead of (1,1)
+    assert!(!is_xmas_pattern(&grid, 1, 1)); // No pattern at (1,1)
 }
 
-#[test]
-fn test_solve_part1_simple() {
-    let simple_input = "XMAS\nMASX";
-    let result = solve_part1(simple_input).unwrap();
-    // Row 0: "XMAS" going right from (0,0) = 1 match
-    // Row 1: No additional XMAS patterns found
-    assert_eq!(result, 1);
+// ===== SOLVE FUNCTION TESTS =====
+
+#[rstest]
+#[case(solve_part1, EXAMPLE_INPUT, 18)] // Part 1 with example input
+#[case(solve_part2, EXAMPLE_INPUT, 9)] // Part 2 with example input
+fn test_solve_functions_example(
+    #[case] solve_fn: fn(&str) -> anyhow::Result<usize>,
+    #[case] input: &str,
+    #[case] expected: usize,
+) {
+    let result = solve_fn(input).unwrap();
+    assert_eq!(result, expected);
 }
 
-#[test]
-fn test_solve_part1_single_xmas() {
-    let input = "XMAS";
-    let result = solve_part1(input).unwrap();
-    // Only one "XMAS" going right from (0,0)
-    assert_eq!(result, 1);
+#[rstest]
+#[case(solve_part1, "XMAS\nMASX", 1)] // Simple: Row 0 has "XMAS" going right
+#[case(solve_part1, "XMAS", 1)] // Single line: "XMAS" going right
+#[case(solve_part1, "X\nM\nA\nS", 1)] // Vertical: "XMAS" going down
+#[case(solve_part1, "", 0)] // Empty input
+#[case(solve_part1, "ABCD\nEFGH", 0)] // No matches
+#[case(solve_part2, "M.S\n.A.\nM.S", 1)] // Single X-MAS pattern
+#[case(solve_part2, "ABC\nDEF\nGHI", 0)] // No patterns
+#[case(solve_part2, "", 0)] // Empty input
+#[case(solve_part2, "AB\nCD", 0)] // Grid too small for X-MAS pattern
+#[case(solve_part2, "M.S.M.S\n.A...A.\nM.S.M.S", 2)] // Multiple X-MAS patterns
+fn test_solve_functions_edge_cases(
+    #[case] solve_fn: fn(&str) -> anyhow::Result<usize>,
+    #[case] input: &str,
+    #[case] expected: usize,
+) {
+    let result = solve_fn(input).unwrap();
+    assert_eq!(result, expected);
 }
 
-#[test]
-fn test_solve_part1_vertical() {
-    let input = "X\nM\nA\nS";
-    let result = solve_part1(input).unwrap();
-    // Only one "XMAS" going down from (0,0)
-    assert_eq!(result, 1);
-}
-
-#[test]
-fn test_solve_part1_empty() {
-    let result = solve_part1("").unwrap();
-    assert_eq!(result, 0);
-}
-
-#[test]
-fn test_solve_part1_no_matches() {
-    let input = "ABCD\nEFGH";
-    let result = solve_part1(input).unwrap();
-    assert_eq!(result, 0);
-}
-
-#[test]
-fn test_solve_part1_real_input() {
+#[rstest]
+#[case(solve_part1, 2447)] // Part 1 with real input
+#[case(solve_part2, 1868)] // Part 2 with real input
+fn test_solve_functions_real_input(
+    #[case] solve_fn: fn(&str) -> anyhow::Result<usize>,
+    #[case] expected: usize,
+) {
     let input = std::fs::read_to_string("input.txt").unwrap();
-    let result = solve_part1(&input).unwrap();
-
-    assert_eq!(result, 2447);
+    let result = solve_fn(&input).unwrap();
+    assert_eq!(result, expected);
 }

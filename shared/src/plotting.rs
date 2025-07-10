@@ -3,7 +3,7 @@
 //! This module provides simple plotting functionality for creating
 //! performance comparison charts across different days of Advent of Code.
 
-use anyhow::Result;
+use anyhow::{bail, Result};
 use plotters::coord::types::RangedCoordf64;
 use plotters::prelude::*;
 
@@ -24,27 +24,47 @@ type PlotChart<'a> = ChartContext<'a, SVGBackend<'a>, Cartesian2d<RangedCoordf64
 /// - Standard "Input Size (n)" / "Time (microseconds)" axes
 ///
 /// # Parameters
-/// * `day` - Day number for filename and title generation
+/// * `filename` - Output SVG filename
+/// * `title` - Chart title
 /// * `algo1_name` - Name of the first algorithm
 /// * `algo2_name` - Name of the second algorithm
 /// * `results` - Benchmark data as (input_size, time1_ns, time2_ns, speedup) tuples
 ///
-/// # Returns
-/// `Ok(())` if chart creation succeeds
-///
 /// # Errors
 ///
-/// Returns `Err` if chart creation fails.
+/// Returns an error if chart creation fails.
+///
+/// # Examples
+///
+/// ```
+/// # use shared::plotting::create_dual_algorithm_plot;
+/// # use std::fs;
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// // Sample benchmark data: (input_size, time1_ns, time2_ns, speedup)
+/// let results = vec![
+///     (1000, 50000.0, 25000.0, 2.0),   // 1000 elements: 50μs vs 25μs, 2x speedup
+///     (5000, 250000.0, 100000.0, 2.5), // 5000 elements: 250μs vs 100μs, 2.5x speedup
+/// ];
+///
+/// create_dual_algorithm_plot(
+///     "benchmark_comparison.svg",
+///     "Algorithm Performance Comparison",
+///     "Naive Algorithm",
+///     "Optimized Algorithm",
+///     &results
+/// )?;
+/// # fs::remove_file("benchmark_comparison.svg").ok();
+/// # Ok(())
+/// # }
+/// ```
 pub fn create_dual_algorithm_plot(
-    day: u8,
+    filename: &str,
+    title: &str,
     algo1_name: &str,
     algo2_name: &str,
     results: &[(usize, f64, f64, f64)],
 ) -> Result<()> {
-    let filename = format!("day{day:02}_performance_comparison.svg");
-    let title = format!("Day {day}: {algo1_name} vs {algo2_name} Algorithm Performance");
-
-    let (root, mut chart) = setup_dual_performance_chart(&filename, &title, results)?;
+    let (root, mut chart) = setup_dual_performance_chart(filename, title, results)?;
 
     // Configure mesh for performance benchmark charts
     chart
@@ -84,11 +104,11 @@ pub fn create_dual_algorithm_plot(
 /// * `results` - Benchmark data used to determine axis ranges
 ///
 /// # Returns
-/// Tuple of (drawing_area, configured_chart) ready for mesh configuration and data plotting
+/// drawing_area and configured chart, ready for mesh configuration and data plotting
 ///
 /// # Errors
 ///
-/// Returns `Err` if chart setup fails.
+/// Returns an error if the chart setup fails (e.g., invalid ranges, SVG backend issues).
 fn setup_dual_performance_chart<'a>(
     filename: &'a str,
     title: &'a str,
@@ -117,9 +137,10 @@ fn setup_dual_performance_chart<'a>(
     let chart = ChartBuilder::on(&root)
         .caption(title, ("sans-serif", 24))
         .margin(50)
-        .margin_top(80)
-        .x_label_area_size(60)
-        .y_label_area_size(60)
+        .margin_top(50)
+        .margin_bottom(40)
+        .x_label_area_size(50)
+        .y_label_area_size(50)
         .build_cartesian_2d(
             0f64..(max_size as f64 * 1.1),
             (min_time * 0.5).log10()..(max_time * 2.0).log10(),
@@ -135,17 +156,14 @@ fn setup_dual_performance_chart<'a>(
 ///
 /// # Parameters
 /// * `chart` - Mutable reference to the chart context for drawing operations
-/// * `results` - Benchmark data as tuples of (input_size, time1_ns, time2_ns, time3_ns)
-/// * `time_index` - Which time column to use (0 for first algorithm, 1 for second, 2 for third)
+/// * `results` - Benchmark data as tuples of (input_size, time1_ns, time2_ns, speedup)
+/// * `time_index` - Which time column to use (0 for first algorithm, 1 for second)
 /// * `color` - Color for the line and markers
 /// * `label` - Label for the legend entry
-///
-/// # Returns
-/// `Ok(())` if plotting succeeds
-///
 /// # Errors
 ///
-/// Returns `Err` if plotting fails.
+/// Returns an error if chart drawing operations fail (SVG backend errors, invalid coordinates).
+///
 fn plot_performance_line<'a>(
     chart: &mut PlotChart<'a>,
     results: &[(usize, f64, f64, f64)],
@@ -160,11 +178,11 @@ fn plot_performance_line<'a>(
                 0 => *time1,
                 1 => *time2,
                 2 => *time3,
-                _ => panic!("Invalid time_index: {time_index}. Must be 0, 1, or 2"),
+                _ => bail!("Invalid time_index: {time_index}. Must be 0, 1, or 2"),
             };
-            (*size as f64, time.log10())
+            Ok((*size as f64, time.log10()))
         })
-        .collect();
+        .collect::<Result<_, _>>()?;
 
     draw_line_with_points(chart, &points, color, label)
 }
@@ -180,12 +198,9 @@ fn plot_performance_line<'a>(
 /// * `color` - Reference to the RGB color for drawing the line and markers
 /// * `label` - Text label for the legend entry describing this algorithm
 ///
-/// # Returns
-/// `Ok(())` if drawing succeeds
-///
 /// # Errors
 ///
-/// Returns `Err` if drawing fails.
+/// Returns an error if drawing fails.
 fn draw_line_with_points<'a>(
     chart: &mut PlotChart<'a>,
     points: &[(f64, f64)],
@@ -213,12 +228,9 @@ fn draw_line_with_points<'a>(
 /// * `chart` - Mutable reference to the chart context for drawing text labels
 /// * `results` - Benchmark data as tuples of (input_size, time1_ns, time2_ns, speedup_factor)
 ///
-/// # Returns
-/// `Ok(())` if label rendering succeeds
-///
 /// # Errors
 ///
-/// Returns `Err` if label rendering fails.
+/// Returns an error if drawing the labels fails (e.g., invalid coordinates, SVG backend issues).
 fn add_speedup_labels(chart: &mut PlotChart<'_>, results: &[(usize, f64, f64, f64)]) -> Result<()> {
     let labels: Vec<_> = results
         .iter()

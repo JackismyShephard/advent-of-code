@@ -7,6 +7,10 @@ edition.workspace = true
 shared = { path = "../shared" }
 anyhow = { workspace = true }
 
+[dev-dependencies]
+rstest = { workspace = true }
+criterion = { workspace = true }
+
 [[bench]]
 name = "single_pass_vs_functional"
 harness = false

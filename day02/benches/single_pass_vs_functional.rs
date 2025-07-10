@@ -1,31 +1,52 @@
-use anyhow::Result;
+use criterion::{criterion_group, criterion_main, Criterion};
 use day02::{solve_part1, solve_part1_functional};
-use shared::benchmarking::{benchmark_function, print_benchmark_header, print_benchmark_result};
-use shared::plotting::create_dual_algorithm_plot;
+use shared::benchmarking::{
+    create_criterion_benchmark, process_benchmark_results, run_dual_algorithm_benchmark, Algorithm,
+    PlotConfig, TestConfig,
+};
 
 const SIZES: [usize; 6] = [100, 500, 1000, 2000, 5000, 10000];
 
-fn main() -> Result<()> {
-    let mut results = Vec::new();
+/// Criterion benchmark with JSON extraction and co-located output
+fn benchmark_algorithms(c: &mut Criterion) {
+    let data_dir = "data";
+    let group_name = "criterion";
 
-    print_benchmark_header("Single Pass", "Functional");
+    // Algorithm definitions
+    let algorithm1 = Algorithm {
+        name: "single_pass",
+        function: solve_part1,
+    };
+    let algorithm2 = Algorithm {
+        name: "functional",
+        function: solve_part1_functional,
+    };
 
-    for &size in &SIZES {
-        let input_string = generate_test_input(size);
-        let samples = if size <= 1000 { 20 } else { 10 };
+    // Test configuration
+    let test_config = TestConfig {
+        sizes: &SIZES,
+        generate_input: generate_test_input,
+    };
 
-        let single_pass_time = benchmark_function(solve_part1, &input_string, samples);
-        let functional_time = benchmark_function(solve_part1_functional, &input_string, samples);
+    // Run the benchmark
+    run_dual_algorithm_benchmark(c, group_name, &algorithm1, &algorithm2, &test_config);
 
-        let speedup = functional_time / single_pass_time;
-        results.push((size, single_pass_time, functional_time, speedup));
+    // Process results and generate outputs
+    let plot_config = PlotConfig {
+        filename: "single_pass_vs_functional.svg",
+        title: "Day 2: Single-Pass vs Functional Algorithm Performance",
+        algorithm1_name: "Single-Pass (Optimized)",
+        algorithm2_name: "Functional (Iterator Approach)",
+    };
 
-        print_benchmark_result(size, single_pass_time, functional_time, speedup);
-    }
-
-    create_dual_algorithm_plot(2, "Single-Pass", "Functional", &results)?;
-    println!("✅ Benchmark completed successfully");
-    Ok(())
+    process_benchmark_results(
+        data_dir,
+        group_name,
+        &algorithm1,
+        &algorithm2,
+        &plot_config,
+        &test_config,
+    );
 }
 
 /// Generates synthetic test input for performance benchmarking.
@@ -77,3 +98,10 @@ fn generate_test_input(count: usize) -> String {
         .collect::<Vec<_>>()
         .join("\n")
 }
+
+criterion_group!(
+    name = benches;
+    config = create_criterion_benchmark("data");
+    targets = benchmark_algorithms
+);
+criterion_main!(benches);

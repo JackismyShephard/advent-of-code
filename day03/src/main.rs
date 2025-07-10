@@ -14,14 +14,14 @@ fn main() -> anyhow::Result<()> {
     println!();
 
     // Run on real input
-    println!("=== Real Input Results ===");
-    let input = std::fs::read_to_string("input.txt")?;
-
-    let part1_result = solve_part1(&input)?;
-    println!("Part 1 result: {part1_result}");
-
-    let part2_result = solve_part2(&input)?;
-    println!("Part 2 result: {part2_result}");
-
+    if let Ok(input) = std::fs::read_to_string("day03/input.txt") {
+        println!("=== Real Input Results ===");
+        let part1_result = solve_part1(&input)?;
+        println!("Part 1 result: {part1_result}");
+        let part2_result = solve_part2(&input)?;
+        println!("Part 2 result: {part2_result}");
+    } else {
+        println!("\nNo input.txt found - create day03/input.txt with your puzzle input");
+    }
     Ok(())
 }

@@ -2,3 +2,6 @@
 
 # Pre-commit binary (downloaded locally)
 pre-commit-*.pyz
+
+# Benchmark data directories (contains generated Criterion output and plots)
+day*/data/

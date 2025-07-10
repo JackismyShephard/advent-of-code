@@ -2,155 +2,137 @@ use day02::{
     is_safe, is_safe_functional, is_safe_with_dampener, parse_input, solve_part1,
     solve_part1_functional, solve_part2, EXAMPLE_INPUT,
 };
+use rstest::rstest;
+
+// ===== PARSE INPUT TESTS =====
 
 #[test]
-fn test_parse_input() {
+fn test_parse_input_example() {
     let input = "1 2 3\n4 5 6";
     let reports = parse_input(input).unwrap();
     assert_eq!(reports, vec![vec![1, 2, 3], vec![4, 5, 6]]);
 }
 
-#[test]
-fn test_is_safe_examples() {
-    // Test cases from the problem description
-    assert!(is_safe(&[7, 6, 4, 2, 1])); // Safe: decreasing by 1 or 2
-    assert!(!is_safe(&[1, 2, 7, 8, 9])); // Unsafe: 2->7 is increase of 5
-    assert!(!is_safe(&[9, 7, 6, 2, 1])); // Unsafe: 6->2 is decrease of 4
-    assert!(!is_safe(&[1, 3, 2, 4, 5])); // Unsafe: 1->3 increasing, 3->2 decreasing
-    assert!(!is_safe(&[8, 6, 4, 4, 1])); // Unsafe: 4->4 no change
-    assert!(is_safe(&[1, 3, 6, 7, 9])); // Safe: increasing by 1, 2, or 3
+#[rstest]
+#[case("", vec![], "empty input")] // Empty input
+#[case("1", vec![vec![1]], "single number")] // Single number on line
+#[case("1  2  3", vec![vec![1, 2, 3]], "extra spaces")] // Extra spaces handled
+#[case("1 2\n3 4 5", vec![vec![1, 2], vec![3, 4, 5]], "different line lengths")] // Lines with different lengths
+#[case("1 2 3\n\n4 5", vec![vec![1, 2, 3], vec![4, 5]], "empty line")] // Empty line handled
+#[case("1\n2 3\n4 5 6 7", vec![vec![1], vec![2, 3], vec![4, 5, 6, 7]], "mixed lengths")] // Mixed line lengths
+fn test_parse_input_edge_cases(
+    #[case] input: &str,
+    #[case] expected: Vec<Vec<i32>>,
+    #[case] description: &str,
+) {
+    let reports = parse_input(input).unwrap();
+    assert_eq!(reports, expected, "Failed for {description}");
 }
 
-#[test]
-fn test_is_safe_edge_cases() {
-    assert!(is_safe(&[])); // Empty report is safe
-    assert!(is_safe(&[1])); // Single level is safe
-    assert!(is_safe(&[1, 2])); // Two levels, valid difference
-    assert!(!is_safe(&[1, 5])); // Two levels, invalid difference (4)
-    assert!(!is_safe(&[5, 5])); // Two levels, no change
+// ===== CORE FUNCTION TESTS =====
+
+#[rstest]
+#[case(&[7, 6, 4, 2, 1], true)] // Safe: decreasing by 1 or 2
+#[case(&[1, 2, 7, 8, 9], false)] // Unsafe: 2->7 is increase of 5
+#[case(&[9, 7, 6, 2, 1], false)] // Unsafe: 6->2 is decrease of 4
+#[case(&[1, 3, 2, 4, 5], false)] // Unsafe: 1->3 increasing, 3->2 decreasing
+#[case(&[8, 6, 4, 4, 1], false)] // Unsafe: 4->4 no change
+#[case(&[1, 3, 6, 7, 9], true)] // Safe: increasing by 1, 2, or 3
+fn test_is_safe_examples(#[case] levels: &[i32], #[case] expected: bool) {
+    assert_eq!(is_safe(levels), expected);
 }
 
-#[test]
-fn test_solve_part1_example() {
-    let result = solve_part1(EXAMPLE_INPUT).unwrap();
-    assert_eq!(result, 2); // From problem description: 2 reports are safe
+#[rstest]
+#[case(&[], true)] // Empty report is safe
+#[case(&[1], true)] // Single level is safe
+#[case(&[1, 2], true)] // Two levels, valid difference
+#[case(&[1, 5], false)] // Two levels, invalid difference (4)
+#[case(&[5, 5], false)] // Two levels, no change
+fn test_is_safe_edge_cases(#[case] levels: &[i32], #[case] expected: bool) {
+    assert_eq!(is_safe(levels), expected);
 }
 
-#[test]
-fn test_solve_part1_custom() {
-    let input = "1 2 3\n5 4 3 2\n1 1 1";
-    let result = solve_part1(input).unwrap();
-    assert_eq!(result, 2); // First two are safe, third has no changes
-}
-
-#[test]
-fn test_is_safe_functional_examples() {
-    // Test cases from the problem description - should match is_safe exactly
-    assert!(is_safe_functional(&[7, 6, 4, 2, 1])); // Safe: decreasing by 1 or 2
-    assert!(!is_safe_functional(&[1, 2, 7, 8, 9])); // Unsafe: 2->7 is increase of 5
-    assert!(!is_safe_functional(&[9, 7, 6, 2, 1])); // Unsafe: 6->2 is decrease of 4
-    assert!(!is_safe_functional(&[1, 3, 2, 4, 5])); // Unsafe: 1->3 increasing, 3->2 decreasing
-    assert!(!is_safe_functional(&[8, 6, 4, 4, 1])); // Unsafe: 4->4 no change
-    assert!(is_safe_functional(&[1, 3, 6, 7, 9])); // Safe: increasing by 1, 2, or 3
-}
-
-#[test]
-fn test_is_safe_functional_edge_cases() {
-    assert!(is_safe_functional(&[])); // Empty report is safe
-    assert!(is_safe_functional(&[1])); // Single level is safe
-    assert!(is_safe_functional(&[1, 2])); // Two levels, valid difference
-    assert!(!is_safe_functional(&[1, 5])); // Two levels, invalid difference (4)
-    assert!(!is_safe_functional(&[5, 5])); // Two levels, no change
-}
-
-#[test]
-fn test_functional_vs_single_pass_equivalence() {
-    // Test that both approaches produce identical results on the example
-    let reports = parse_input(EXAMPLE_INPUT).unwrap();
-    for report in &reports {
-        assert_eq!(
-            is_safe(report),
-            is_safe_functional(report),
-            "Mismatch for report: {report:?}"
-        );
-    }
-}
-
-#[test]
-fn test_solve_part1_functional_example() {
-    let result = solve_part1_functional(EXAMPLE_INPUT).unwrap();
-    assert_eq!(result, 2); // Should match solve_part1
-}
-
-#[test]
-fn test_solve_part1_functional_equivalence() {
-    // Test that both solve functions produce identical results
+#[rstest]
+#[case(&[7, 6, 4, 2, 1])] // Safe: decreasing by 1 or 2
+#[case(&[1, 2, 7, 8, 9])] // Unsafe: 2->7 is increase of 5
+#[case(&[9, 7, 6, 2, 1])] // Unsafe: 6->2 is decrease of 4
+#[case(&[1, 3, 2, 4, 5])] // Unsafe: 1->3 increasing, 3->2 decreasing
+#[case(&[8, 6, 4, 4, 1])] // Unsafe: 4->4 no change
+#[case(&[1, 3, 6, 7, 9])] // Safe: increasing by 1, 2, or 3
+#[case(&[])] // Empty report is safe
+#[case(&[1])] // Single level is safe
+#[case(&[1, 2])] // Two levels, valid difference
+#[case(&[1, 5])] // Two levels, invalid difference (4)
+#[case(&[5, 5])] // Two levels, no change
+fn test_is_safe_implementations_equivalence(#[case] levels: &[i32]) {
     assert_eq!(
-        solve_part1(EXAMPLE_INPUT).unwrap(),
-        solve_part1_functional(EXAMPLE_INPUT).unwrap()
+        is_safe(levels),
+        is_safe_functional(levels),
+        "Implementations disagree on case: {levels:?}"
     );
 }
 
-#[test]
-fn test_part1_real_input() {
+#[rstest]
+#[case(&[7, 6, 4, 2, 1], true)] // Safe without removing any level
+#[case(&[1, 2, 7, 8, 9], false)] // Unsafe regardless of removal
+#[case(&[9, 7, 6, 2, 1], false)] // Unsafe regardless of removal
+#[case(&[1, 3, 2, 4, 5], true)] // Safe by removing second level (3)
+#[case(&[8, 6, 4, 4, 1], true)] // Safe by removing third level (4)
+#[case(&[1, 3, 6, 7, 9], true)] // Safe without removing any level
+fn test_is_safe_with_dampener_examples(#[case] levels: &[i32], #[case] expected: bool) {
+    assert_eq!(is_safe_with_dampener(levels), expected);
+}
+
+#[rstest]
+#[case(&[], true)] // Empty report is safe
+#[case(&[1], true)] // Single level is safe
+#[case(&[1, 2], true)] // Two levels, valid difference
+#[case(&[1, 5], true)] // Two levels, can remove one to make safe
+#[case(&[5, 5], true)] // Two levels, can remove one to make safe
+#[case(&[1, 2, 3], true)] // Already safe
+#[case(&[1, 4, 3], true)] // Can remove 4 to make 1->3 safe
+#[case(&[1, 5, 9, 13], false)] // All jumps too large, can't fix with one removal
+fn test_is_safe_with_dampener_edge_cases(#[case] levels: &[i32], #[case] expected: bool) {
+    assert_eq!(is_safe_with_dampener(levels), expected);
+}
+
+// ===== SOLVE FUNCTION TESTS =====
+
+#[rstest]
+#[case(solve_part1, 2)] // Part 1 imperative with example input
+#[case(solve_part1_functional, 2)] // Part 1 functional with example input
+#[case(solve_part2, 4)] // Part 2 with example input
+fn test_solve_functions_example(
+    #[case] solve_fn: fn(&str) -> anyhow::Result<usize>,
+    #[case] expected: usize,
+) {
+    let result = solve_fn(EXAMPLE_INPUT).unwrap();
+    assert_eq!(result, expected);
+}
+
+#[rstest]
+#[case(solve_part1, "1 2 3\n5 4 3 2\n1 1 1", 2)] // Part 1: First two safe, third has no changes
+#[case(solve_part1_functional, "1 2 3\n5 4 3 2\n1 1 1", 2)] // Part 1: First two safe, third has no changes
+#[case(solve_part2, "1 2 3\n1 5 2\n10 8 6 4\n1 1 1 1", 3)] // Part 2: Custom dampener test
+fn test_solve_functions_edge_cases(
+    #[case] solve_fn: fn(&str) -> anyhow::Result<usize>,
+    #[case] input: &str,
+    #[case] expected: usize,
+) {
+    let result = solve_fn(input).unwrap();
+    assert_eq!(result, expected);
+}
+
+#[rstest]
+#[case(solve_part1, 686)] // Part 1 imperative with real input
+#[case(solve_part1_functional, 686)] // Part 1 functional with real input
+#[case(solve_part2, 717)] // Part 2 with real input
+fn test_solve_functions_real_input(
+    #[case] solve_fn: fn(&str) -> anyhow::Result<usize>,
+    #[case] expected: usize,
+) {
     let input = std::fs::read_to_string("input.txt")
         .expect("Failed to read input.txt - make sure it exists");
-    let result = solve_part1(&input).unwrap();
-    assert_eq!(result, 686); // Actual result from puzzle input
-}
-
-#[test]
-fn test_part1_functional_real_input() {
-    let input = std::fs::read_to_string("input.txt")
-        .expect("Failed to read input.txt - make sure it exists");
-    let result = solve_part1_functional(&input).unwrap();
-    assert_eq!(result, 686); // Actual result from puzzle input
-}
-
-#[test]
-fn test_is_safe_with_dampener_examples() {
-    // Test cases from Part 2 problem description
-    assert!(is_safe_with_dampener(&[7, 6, 4, 2, 1])); // Safe without removing any level
-    assert!(!is_safe_with_dampener(&[1, 2, 7, 8, 9])); // Unsafe regardless of removal
-    assert!(!is_safe_with_dampener(&[9, 7, 6, 2, 1])); // Unsafe regardless of removal
-    assert!(is_safe_with_dampener(&[1, 3, 2, 4, 5])); // Safe by removing second level (3)
-    assert!(is_safe_with_dampener(&[8, 6, 4, 4, 1])); // Safe by removing third level (4)
-    assert!(is_safe_with_dampener(&[1, 3, 6, 7, 9])); // Safe without removing any level
-}
-
-#[test]
-fn test_is_safe_with_dampener_edge_cases() {
-    assert!(is_safe_with_dampener(&[])); // Empty report is safe
-    assert!(is_safe_with_dampener(&[1])); // Single level is safe
-    assert!(is_safe_with_dampener(&[1, 2])); // Two levels, valid difference
-    assert!(is_safe_with_dampener(&[1, 5])); // Two levels, can remove one to make safe
-    assert!(is_safe_with_dampener(&[5, 5])); // Two levels, can remove one to make safe
-    assert!(is_safe_with_dampener(&[1, 2, 3])); // Already safe
-    assert!(is_safe_with_dampener(&[1, 4, 3])); // Can remove 4 to make 1->3 safe
-    assert!(!is_safe_with_dampener(&[1, 5, 9, 13])); // All jumps too large, can't fix with one removal
-}
-
-#[test]
-fn test_solve_part2_example() {
-    let result = solve_part2(EXAMPLE_INPUT).unwrap();
-    assert_eq!(result, 4); // From Part 2 problem description: 4 reports are safe with dampener
-}
-
-#[test]
-fn test_solve_part2_custom() {
-    let input = "1 2 3\n1 5 2\n10 8 6 4\n1 1 1 1";
-    let result = solve_part2(input).unwrap();
-    // 1 2 3: safe already
-    // 1 5 2: can remove 5 to get 1->2 (safe)
-    // 10 8 6 4: safe already (decreasing by 2)
-    // 1 1 1 1: can remove any one 1 to get repeated values, but still unsafe (no change)
-    assert_eq!(result, 3);
-}
-
-#[test]
-fn test_part2_real_input() {
-    let input = std::fs::read_to_string("input.txt")
-        .expect("Failed to read input.txt - make sure it exists");
-    let result = solve_part2(&input).unwrap();
-    assert_eq!(result, 717); // Actual result from puzzle input
+    let result = solve_fn(&input).unwrap();
+    assert_eq!(result, expected);
 }

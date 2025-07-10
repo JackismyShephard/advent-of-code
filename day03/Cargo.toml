@@ -8,3 +8,6 @@ shared = { path = "../shared" }
 anyhow = { workspace = true }
 regex = "1.11.1"
 once_cell = "1.21.3"
+
+[dev-dependencies]
+rstest = { workspace = true }

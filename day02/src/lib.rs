@@ -13,7 +13,7 @@
 use anyhow::Result;
 use shared::input::parse_lines;
 
-/// Example input used for testing and documentation.
+/// Example input from the problem statement used for testing and documentation.
 pub const EXAMPLE_INPUT: &str = "7 6 4 2 1
 1 2 7 8 9
 9 7 6 2 1
@@ -21,85 +21,11 @@ pub const EXAMPLE_INPUT: &str = "7 6 4 2 1
 8 6 4 4 1
 1 3 6 7 9";
 
-/// Parses the input string into a vector of reports, where each report is a vector of levels.
-///
-/// Each line contains space-separated integers representing reactor levels.
-///
-/// # Parameters
-/// * `input` - Multi-line string with reactor level reports (one report per line, space-separated integers)
-///
-/// # Returns
-/// Vector of reports, where each report is a Vec<i32> of levels
-///
-/// # Errors
-///
-/// Returns `Err` if any value cannot be parsed as an `i32`.
-///
-/// # Examples
-///
-/// ```
-/// # use day02::parse_input;
-/// let input = "1 2 3\n4 5 6";
-/// let reports = parse_input(input).unwrap();
-/// assert_eq!(reports, vec![vec![1, 2, 3], vec![4, 5, 6]]);
-/// ```
-pub fn parse_input(input: &str) -> Result<Vec<Vec<i32>>> {
-    let lines = parse_lines(input);
-    let mut reports = Vec::new();
+/// Minimum safe difference between adjacent levels in a reactor report.
+const MIN_SAFE_DIFF: i32 = 1;
 
-    for line in lines {
-        let levels = line
-            .split_whitespace()
-            .map(|s| s.parse())
-            .collect::<Result<Vec<i32>, _>>()?;
-        reports.push(levels);
-    }
-
-    Ok(reports)
-}
-
-/// Checks if a report is safe according to reactor safety rules.
-///
-/// A report is safe if:
-/// 1. All levels are either increasing or decreasing
-/// 2. Adjacent levels differ by at least 1 and at most 3
-///
-/// # Parameters
-/// * `report` - Vector of reactor levels to analyze for safety
-///
-/// # Returns
-/// True if the report meets all safety criteria, false otherwise
-///
-/// # Examples
-///
-/// ```
-/// # use day02::is_safe;
-/// assert_eq!(is_safe(&vec![7, 6, 4, 2, 1]), true);  // Decreasing by 1-2
-/// assert_eq!(is_safe(&vec![1, 2, 7, 8, 9]), false); // Jump of 5
-/// assert_eq!(is_safe(&vec![8, 6, 4, 4, 1]), false); // No change (4->4)
-/// ```
-pub fn is_safe(report: &[i32]) -> bool {
-    let mut direction = None;
-
-    report.windows(2).all(|window| {
-        let diff = window[1] - window[0];
-
-        // Check if difference is within valid range (1-3)
-        if diff.abs() < 1 || diff.abs() > 3 {
-            return false;
-        }
-
-        // Check/establish monotonicity
-        let is_increasing = diff > 0;
-        match direction {
-            None => {
-                direction = Some(is_increasing);
-                true
-            }
-            Some(dir) => dir == is_increasing,
-        }
-    })
-}
+/// Maximum safe difference between adjacent levels in a reactor report.
+const MAX_SAFE_DIFF: i32 = 3;
 
 /// Solves Part 1: Counts how many reports are safe.
 ///
@@ -129,10 +55,11 @@ pub fn solve_part1(input: &str) -> Result<usize> {
     Ok(safe_count)
 }
 
-/// Pure functional implementation of safety checking for performance comparison.
+/// Checks if a report is safe according to reactor safety rules.
 ///
-/// Uses multiple iterator passes to separate concerns: collect differences,
-/// then check range constraints and monotonicity independently.
+/// A report is safe if:
+/// 1. All levels are either increasing or decreasing
+/// 2. Adjacent levels differ by at least 1 and at most 3
 ///
 /// # Parameters
 /// * `report` - Vector of reactor levels to analyze for safety
@@ -143,20 +70,32 @@ pub fn solve_part1(input: &str) -> Result<usize> {
 /// # Examples
 ///
 /// ```
-/// # use day02::is_safe_functional;
-/// assert!(is_safe_functional(&[7, 6, 4, 2, 1]));  // Decreasing by 1-2
-/// assert!(!is_safe_functional(&[1, 2, 7, 8, 9])); // Jump of 5
+/// # use day02::is_safe;
+/// assert_eq!(is_safe(&vec![7, 6, 4, 2, 1]), true);  // Decreasing by 1-2
+/// assert_eq!(is_safe(&vec![1, 2, 7, 8, 9]), false); // Jump of 5
+/// assert_eq!(is_safe(&vec![8, 6, 4, 4, 1]), false); // No change (4->4)
 /// ```
-pub fn is_safe_functional(report: &[i32]) -> bool {
-    let diffs: Vec<i32> = report.windows(2).map(|w| w[1] - w[0]).collect();
+pub fn is_safe(report: &[i32]) -> bool {
+    let mut direction = None;
 
-    // Check all differences are in valid range (1-3)
-    let valid_range = diffs.iter().all(|&d| d.abs() >= 1 && d.abs() <= 3);
+    report.windows(2).all(|window| {
+        let diff = window[1] - window[0];
 
-    // Check all same direction (all positive or all negative)
-    let monotonic = diffs.iter().all(|&d| d > 0) || diffs.iter().all(|&d| d < 0);
+        // Check if difference is within valid range
+        if diff.abs() < MIN_SAFE_DIFF || diff.abs() > MAX_SAFE_DIFF {
+            return false;
+        }
 
-    valid_range && monotonic
+        // Check/establish monotonicity
+        let is_increasing = diff > 0;
+        match direction {
+            None => {
+                direction = Some(is_increasing);
+                true
+            }
+            Some(dir) => dir == is_increasing,
+        }
+    })
 }
 
 /// Solves part 1 using the functional approach for safety analysis.
@@ -191,48 +130,36 @@ pub fn solve_part1_functional(input: &str) -> Result<usize> {
     Ok(safe_count)
 }
 
-/// Checks if a report is safe with the Problem Dampener active.
+/// Pure functional implementation of safety checking for performance comparison.
 ///
-/// The Problem Dampener allows removing exactly one level from an unsafe report
-/// to make it safe. A report is considered safe if it's either already safe,
-/// or becomes safe after removing any single level.
+/// Uses multiple iterator passes to separate concerns: collect differences,
+/// then check range constraints and monotonicity independently.
 ///
 /// # Parameters
-/// * `report` - Vector of reactor levels to analyze with dampening capability
+/// * `report` - Vector of reactor levels to analyze for safety
 ///
 /// # Returns
-/// True if the report is safe or can be made safe by removing one level
+/// True if the report meets all safety criteria, false otherwise
 ///
 /// # Examples
 ///
 /// ```
-/// # use day02::is_safe_with_dampener;
-/// assert!(is_safe_with_dampener(&[7, 6, 4, 2, 1])); // Already safe
-/// assert!(is_safe_with_dampener(&[1, 3, 2, 4, 5])); // Safe by removing 3
-/// assert!(is_safe_with_dampener(&[8, 6, 4, 4, 1])); // Safe by removing one 4
-/// assert!(!is_safe_with_dampener(&[1, 2, 7, 8, 9])); // Unsafe regardless
+/// # use day02::is_safe_functional;
+/// assert!(is_safe_functional(&[7, 6, 4, 2, 1]));  // Decreasing by 1-2
+/// assert!(!is_safe_functional(&[1, 2, 7, 8, 9])); // Jump of 5
 /// ```
-pub fn is_safe_with_dampener(report: &[i32]) -> bool {
-    // First check if already safe
-    if is_safe(report) {
-        return true;
-    }
+pub fn is_safe_functional(report: &[i32]) -> bool {
+    let diffs: Vec<i32> = report.windows(2).map(|w| w[1] - w[0]).collect();
 
-    // Try removing each level one by one
-    for i in 0..report.len() {
-        // Create a new vector without the element at index i
-        let modified: Vec<i32> = report[..i]
-            .iter()
-            .chain(report[i + 1..].iter())
-            .copied()
-            .collect();
+    // Check all differences are in valid range
+    let valid_range = diffs
+        .iter()
+        .all(|&d| d.abs() >= MIN_SAFE_DIFF && d.abs() <= MAX_SAFE_DIFF);
 
-        if is_safe(&modified) {
-            return true;
-        }
-    }
+    // Check all same direction (all positive or all negative)
+    let monotonic = diffs.iter().all(|&d| d > 0) || diffs.iter().all(|&d| d < 0);
 
-    false
+    valid_range && monotonic
 }
 
 /// Solves Part 2: Counts how many reports are safe with the Problem Dampener.
@@ -265,4 +192,81 @@ pub fn solve_part2(input: &str) -> Result<usize> {
         .filter(|report| is_safe_with_dampener(report))
         .count();
     Ok(safe_count)
+}
+
+/// Checks if a report is safe with the Problem Dampener active.
+///
+/// The Problem Dampener allows removing exactly one level from an unsafe report
+/// to make it safe. A report is considered safe if it's either already safe,
+/// or becomes safe after removing any single level.
+///
+/// # Parameters
+/// * `report` - Vector of reactor levels to analyze with dampening capability
+///
+/// # Returns
+/// True if the report is safe or can be made safe by removing one level
+///
+/// # Examples
+///
+/// ```
+/// # use day02::is_safe_with_dampener;
+/// assert!(is_safe_with_dampener(&[7, 6, 4, 2, 1])); // Already safe
+/// assert!(is_safe_with_dampener(&[1, 3, 2, 4, 5])); // Safe by removing 3
+/// assert!(is_safe_with_dampener(&[8, 6, 4, 4, 1])); // Safe by removing one 4
+/// assert!(!is_safe_with_dampener(&[1, 2, 7, 8, 9])); // Cannot be made safe - jumps too large
+/// ```
+pub fn is_safe_with_dampener(report: &[i32]) -> bool {
+    // First check if already safe
+    if is_safe(report) {
+        return true;
+    }
+
+    // Try removing each level one by one
+    for i in 0..report.len() {
+        // Create a new vector without the element at index i
+        let dampened_report: Vec<i32> = report[..i]
+            .iter()
+            .chain(report[i + 1..].iter())
+            .copied()
+            .collect();
+
+        if is_safe(&dampened_report) {
+            return true;
+        }
+    }
+
+    false
+}
+
+/// Parses the input string into a vector of reports, where each report is a vector of levels.
+///
+/// Each line contains space-separated integers representing reactor levels.
+///
+/// # Parameters
+/// * `input` - Multi-line string with reactor level reports (one report per line, space-separated integers)
+///
+/// # Returns
+/// Vector of reports, where each report is a Vec<i32> of levels
+///
+/// # Errors
+///
+/// Returns `Err` if any value cannot be parsed as an `i32`.
+///
+/// # Examples
+///
+/// ```
+/// # use day02::parse_input;
+/// let input = "1 2 3\n4 5 6";
+/// let reports = parse_input(input).unwrap();
+/// assert_eq!(reports, vec![vec![1, 2, 3], vec![4, 5, 6]]);
+/// ```
+pub fn parse_input(input: &str) -> Result<Vec<Vec<i32>>> {
+    parse_lines(input)
+        .into_iter()
+        .map(|line| -> Result<Vec<i32>> {
+            line.split_whitespace()
+                .map(|s| s.parse().map_err(anyhow::Error::from))
+                .collect()
+        })
+        .collect()
 }

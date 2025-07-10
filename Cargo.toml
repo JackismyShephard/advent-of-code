@@ -9,10 +9,12 @@ rust-version = "1.76"
 
 [workspace.dependencies]
 anyhow = "1.0"
+criterion = { version = "0.6.0", features = ["html_reports"] }
 plotters = { version = "0.3.7", default-features = false, features = [
   "svg_backend",
   "line_series",
 ] }
+rstest = "0.25.0"
 
 # Optimized release profile for better performance
 [profile.release]

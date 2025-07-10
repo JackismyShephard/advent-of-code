@@ -11,7 +11,7 @@ tutorials.
 - `shared/` package contains common utilities (input parsing, etc.)
 - Run with: `cargo run -p dayXX`
 - Test with: `cargo test -p dayXX`
-- Benchmark with: `cargo bench -p dayXX`
+- Benchmark with: `cargo bench -p dayXX` (add `--quiet` for minimal output)
 
 ## Implementation Status
 
@@ -19,7 +19,7 @@ tutorials.
 - ✅ Day 2: Completed (Part 1: reactor safety report analysis, Part 2: Problem Dampener)
 - ✅ Day 3: Completed (Part 1: corrupted memory mul instruction parsing,
   Part 2: do()/don't() conditional processing)
-- 🔄 Day 4: Part 1 Complete (Part 1: XMAS word search in 2D grid, Part 2: TBD)
+- ✅ Day 4: Completed (Part 1: XMAS word search in 2D grid, Part 2: X-MAS pattern detection)
 
 ## Next Steps for New Days
 
@@ -70,6 +70,12 @@ Focused configuration for learning Rust without information overload:
   - User instructions prefixed with "remember" should be documented here
   - This creates a persistent record of important project-specific guidance
 
+- **ALWAYS run commands from the project root directory**
+
+  - Never run commands from subdirectories like `day01/` or `shared/`
+  - This prevents path confusion and ensures consistent behavior
+  - Use `cargo bench -p dayXX` format for package-specific operations
+
 - **after completing a task ALWAYS**
 
   - stage relevant files with `git add`
@@ -84,6 +90,10 @@ Focused configuration for learning Rust without information overload:
   variable` in format strings
   - ❌ `println!("Result: {}", result);`
   - ✅ `println!("Result: {result}");`
+
+- **`clippy::too_many_arguments`**: NEVER use `#[allow(clippy::too_many_arguments)]` without explicit user permission
+  - ✅ **Proper solution**: Group semantically related parameters into meaningful structs
+  - ❌ **Wrong**: Adding `#[allow]` annotation to bypass the warning
 
 - **IMPORTANT: Always commit ALL files for each day solution:**
 
@@ -143,83 +153,57 @@ over quality checks, consider migrating to a `justfile`-based approach.
 Replace automatic pre-commit hooks with manual `just check` commands.
 Would require discipline to remember running checks before commits
 
-## Research Methodology
+## Writing tests
 
-### How to Conduct Proper Deep Research
+**Consistent organization across all days:**
+
+```rust
+// ===== PARSE INPUT TESTS =====
+// Basic functionality and edge cases
+
+// ===== CORE FUNCTION TESTS =====
+// Parameterized tests for individual functions
+
+// ===== SOLVE FUNCTION TESTS =====
+// Example input, real input, and edge cases
+
+```
+
+**Comprehensive edge case testing through parameterization:**
+
+**Best Practice:** Inline comments explaining each test case
+
+## Research Methodology
 
 **When user requests "ultrathink and research" or "deep research":**
 
-#### Phase 1: Primary Source Investigation
+### Phase 1: Primary Source Investigation
 
 - **RFCs & Language Issues**: Search rust-lang/rfcs for design decisions and rationale
 - **Library Documentation**: Read actual API docs, not just descriptions
 - **Community Forums**: Access Rust Internals, not just user forums
 - **Version History**: Research when features were added and why
 
-#### Phase 2: Cross-Domain Analysis
+### Phase 2: Cross-Domain Analysis
 
 - **Multiple Domains**: Check game engines, scientific computing, image processing, etc..
 - **Real Codebases**: Examine how major libraries solve problems
 - **Performance Data**: Look for benchmarks and real-world measurements
 - **Historical Context**: Understand evolution of approaches over time
 
-#### Phase 3: Evidence Quality Assessment
+### Phase 3: Evidence Quality Assessment
 
 - **Authoritative**: Language RFCs, core team discussions, library maintainer posts
 - **Practical**: Stack Overflow with multiple upvotes, real project examples
 - **Speculative**: Blog posts, opinions without backing data
 - **Verify Access**: Confirm you can actually read sources, not just descriptions
 
-#### Phase 4: Honest Reporting
+### Phase 4: Honest Reporting
 
 - **Qualify Claims**: "Based on limited sources" vs "definitive consensus"
 - **Cite Limitations**: Note 403 errors, paywalls, incomplete access
 - **Multiple Perspectives**: Present competing viewpoints with evidence
 - **Avoid Extrapolation**: Don't claim "industry standard" from one example
-
-## Rust Signed / unsigned Problem
-
-### Problem Statement
-
-**The Core Tension:**
-
-- **Array indexing**: Requires `usize` (unsigned)
-  - language requirement to prevent negative array access
-- **Arithmetic**: Often needs signed values.
-- casting between signed and unsigned types leads to verbose code
-
-**Why This is a Widespread Issue:**
-
-- Acknowledged across entire Rust community as fundamental pain point
-- Bjarne Stroustrup called unsigned indexing "a mistake in C++ STL design"
-- **No consensus exists** - remains active debate (8+ page discussions)
-- **Professional libraries** lean toward signed coordinates internally
-- **Language team** committed to unsigned for safety
-
-### Research-Backed Solution Patterns
-
-#### Pattern 1: Modern Mixed Operations (Rust 1.66.0+)
-
-```rust
-// Official language solution, stabilized Dec 2022
-let new_row = start_row.checked_add_signed(delta * i)?;
-```
-
-- **Evidence**: Stabilized in rust-lang/rust#87840 after community demand
-- **Use Cases**: Cargo (CPU counts), io::SeekFrom operations
-- **Pros**: Official support, safety guarantees, handles overflow
-- **Cons**: Verbose Option handling, recent adoption
-
-#### Pattern 2: All-Signed Internal (Professional Grid Libraries)
-
-```rust
-struct Coord { x: i32, y: i32 }  // grid_2d crate approach
-```
-
-- **Evidence**: Used by grid_2d, pathfinding, and other professional libraries
-- **Rationale**: Clean arithmetic, convert to usize only at array boundaries  
-- **Pros**: Simple math, proven in production, industry standard
-- **Cons**: Conversion overhead at indexing points
 
 ## Documentation Best Practices
 
@@ -234,6 +218,7 @@ Following Rust ecosystem conventions for writing high-quality documentation:
 3. **`# Parameters`** - **Explicit semantic documentation of what each
    parameter represents**
 4. **`# Returns`** - **Explicit description of return value meaning and units**
+   - ONLY for functions that return meaningful values, never for functions returning `()`
 5. **`# Errors`** - When function returns `Result<T, E>` (fallible functions)
 6. **`# Panics`** - When function can panic (if applicable)
 7. **`# Examples`** - Code examples showing usage (most important!)
@@ -283,32 +268,11 @@ wslview target/doc/dayXX/index.html
 
 #### Step 1: Establish Baseline with Criterion
 
-```bash
-# Add Criterion to Cargo.toml [dev-dependencies]
-criterion = { version = "0.5", features = ["html_reports"] }
-
-# Create focused benchmarks (see day01/benches/day01_benchmarks.rs)
-cargo bench
-```
-
 #### Step 2: Component-Level Analysis
 
-Create separate benchmarks for each major component to identify bottlenecks:
+- Create separate benchmarks for each major component to identify bottlenecks:
 
-```rust
-// Example: Break down parsing vs sorting vs calculation
-c.bench_function("parsing_only", |b| {
-    b.iter(|| parse_input(black_box(&input)));
-});
-
-c.bench_function("sorting_only", |b| {
-    b.iter(|| {
-        let mut data = parsed_data.clone();
-        data.sort();
-        black_box(data);
-    });
-});
-```
+- Example: Break down parsing vs sorting vs calculation
 
 #### Step 3: Profile-Guided Optimization
 
@@ -316,68 +280,57 @@ Target the **biggest bottleneck first**
 
 #### Step 4: Verify Improvements
 
-```bash
-# Compare original vs optimized implementations
-cargo bench
-
-# Look for consistent 1.2x+ improvements across multiple sizes
-```
-
-### What Generally Doesn't Work for AoC Problems
-
-**Based on Day 1 experiments:**
-
-1. **Parallelization** (0.0-0.7x speedup)
-   - Thread overhead dominates for small datasets
-   - Beneficial only at 500,000+ elements
-   - AoC problems typically 100-10,000 elements
-
-2. **Profile-Guided Optimization (PGO)** (0.96x speedup)
-   - Helps with complex branching patterns
-   - AoC code has simple, predictable control flow
-   - Most time spent in stdlib functions already optimized
-
-3. **Manual micro-optimizations** (1.0-1.1x speedup)
-   - Loop unrolling: LLVM already optimizes
-   - SIMD: Limited benefit for simple operations
-   - Rust's stdlib is already highly optimized
-
 ### Optimization Priority (Proven Effective)
 
 1. **Algorithm choice** - O(n) vs O(n²) (day01: 7.5x speedup HashMap vs naive)
 2. **Data structure optimization** - HashMap vs Vec, pre-allocation
 3. **Parsing optimization** - SIMD libraries for known formats (day01: 1.67x speedup)
 4. **Compiler optimizations** - Always use `--release` mode
+5. **Profile-Guided Optimization (PGO)**
+6. **Manual micro-optimizations**
+7. **Parallelization**
 
-## Benchmarking and Plotting Architecture
+## Criterion HTML Reports
 
-### Research Summary
+Criterion automatically generates HTML reports when benchmarks are run. The reports are located at:
 
-**After extensive research comparing plotting and benchmarking approaches, we established our final architecture:**
+- `dayXX/data/criterion/report/index.html` (main report index)
+- Individual benchmark reports in subdirectories
 
-### **Plotting Decision: Custom Plotters**
+**For full HTML report functionality, install gnuplot:**
 
-- **Chosen Approach**: Custom plotters-based visualization
-- **Key Finding**: Plotters provides equivalent visual quality to Criterion's gnuplot output with greater control and customization
-- **Research Conclusion**: No significant functional differences between gnuplot and plotters backends in Criterion - the choice is purely about dependency management (external vs pure Rust)
-- **Advantages**: Complete control over plot styling, logarithmic scaling, custom annotations, and integration with our benchmarking workflow
+```bash
+# Ubuntu/Debian
+sudo apt install gnuplot
 
-### **Benchmarking Decision: Criterion.rs**
+# macOS
+brew install gnuplot
 
-- **Chosen Approach**: Criterion.rs for data collection and statistical analysis
-- **Research Context**: Comprehensive comparison of Current Custom Setup vs Criterion vs Divan
-- **Key Factors**:
-  - **Integration**: Criterion provides superior JSON/CSV export for custom plotting integration
-  - **Tooling**: Mature cargo bench support and programmatic data access
-  - **Statistics**: Valuable statistical rigor (bootstrap sampling, confidence intervals, outlier detection)
-  - **Ecosystem**: Industry standard with extensive documentation and community support
+# Windows
+# Download from http://www.gnuplot.info/download.html
+```
 
-### **Final Architecture**
+### Report Features
 
-- **Data Collection**: Criterion.rs benchmarks with `harness = false` in Cargo.toml
-- **Data Extraction**: JSON/CSV export from Criterion for custom analysis
-- **Visualization**: Custom plotters-based plots with full control over styling and layout
-- **Workflow**: `cargo bench` → extract data → generate custom plots
-- **Benefits**: Combines Criterion's statistical rigor with our custom visualization capabilities
+- **Performance timelines**: Track benchmark changes over time
+- **Detailed statistics**: Confidence intervals, outlier detection
+- **Comparative analysis**: Side-by-side performance comparisons
+- **Interactive plots**: Zoom, pan, and explore data points
 
-This hybrid approach maximizes both measurement accuracy and visualization quality while maintaining learning-focused simplicity.
+## Rust Signed / unsigned Problem
+
+**The Core Tension:**
+
+- **Array indexing**: Requires `usize` (unsigned)
+  - language requirement to prevent negative array access
+- **Arithmetic**: Often needs signed values.
+- casting between signed and unsigned types leads to verbose code
+
+### SOlution: All-Signed Internal (Professional Grid Libraries)
+
+```rust
+struct Coord { x: i32, y: i32 }  // grid_2d crate approach
+```
+
+- **Pros**: Simple math, proven in production, industry standard
+- **Cons**: Conversion overhead at indexing points

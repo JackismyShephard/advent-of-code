@@ -19,7 +19,7 @@ use std::fs;
 ///
 /// # Errors
 ///
-/// Returns `Err` if:
+/// Returns an error if:
 /// - The input file doesn't exist at the expected path
 /// - File cannot be read due to permissions or I/O errors
 /// - File contains invalid UTF-8 sequences

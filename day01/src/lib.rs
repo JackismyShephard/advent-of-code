@@ -2,7 +2,7 @@
 //!
 //! Solution for Advent of Code 2024 Day 1.
 //!
-//! Part 1: Calculate total distance between two sorted lists by pairing up
+//! Part 1: Calculate total distance between two lists by pairing up
 //! the smallest numbers and summing the absolute differences.
 //!
 //! Part 2: Calculate similarity score by multiplying each number in the left
@@ -20,49 +20,7 @@ pub const EXAMPLE_INPUT: &str = "3   4
 3   9
 3   3";
 
-/// Parses the input string into two separate lists of integers (left and right columns).
-///
-/// Takes input with one pair of integers per line, separated by whitespace,
-/// and separates them into left and right column vectors.
-///
-/// # Parameters
-/// * `input` - Multi-line string with integer pairs (one pair per line, whitespace-separated)
-///
-/// # Returns
-/// Tuple of (left_column_numbers, right_column_numbers) as Vec<i32>
-///
-/// # Errors
-///
-/// Returns `Err` if any value cannot be parsed as an `i32`.
-///
-/// # Examples
-///
-/// ```
-/// # use day01::parse_input;
-/// let input = "1 2\n3 4";
-/// let (left, right) = parse_input(input).unwrap();
-/// assert_eq!(left, vec![1, 3]);
-/// assert_eq!(right, vec![2, 4]);
-/// ```
-pub fn parse_input(input: &str) -> Result<(Vec<i32>, Vec<i32>)> {
-    let lines = parse_lines(input);
-
-    let mut left_nums: Vec<i32> = Vec::new();
-    let mut right_nums: Vec<i32> = Vec::new();
-
-    // Parse the two columns of numbers
-    for line in lines {
-        let parts: Vec<&str> = line.split_whitespace().collect();
-        if parts.len() == 2 {
-            left_nums.push(parts[0].parse()?);
-            right_nums.push(parts[1].parse()?);
-        }
-    }
-
-    Ok((left_nums, right_nums))
-}
-
-/// Solves Part 1: Calculates the total distance between the sorted left and right lists.
+/// Solves Part 1: Calculates the total distance between the left and right lists.
 ///
 /// The function sorts both lists independently and then sums the absolute differences
 /// of corresponding elements when paired by position.
@@ -103,8 +61,9 @@ pub fn solve_part1(input: &str) -> Result<i32> {
 
 /// Solves Part 2: Calculates a similarity score based on frequency matching.
 ///
-/// Multiplies each number in the left list by how many times it appears in the right list.
-/// Uses hash maps for efficient frequency counting and handles duplicate values optimally.
+/// For each unique number in the left list, multiplies the number by its frequency
+/// in the left list and its frequency in the right list. Uses hash maps for
+/// efficient frequency counting and handles duplicate values optimally.
 ///
 /// # Parameters
 /// * `input` - Multi-line string containing integer pairs (whitespace-separated)
@@ -187,4 +146,47 @@ pub fn solve_part2_naive(input: &str) -> Result<i32> {
     }
 
     Ok(similarity_score)
+}
+
+/// Parses the input string into two separate lists of integers (left and right columns).
+///
+/// Takes input with one pair of integers per line, separated by whitespace,
+/// and separates them into left and right column vectors.
+///
+/// # Parameters
+/// * `input` - Multi-line string with integer pairs (one pair per line, whitespace-separated)
+///
+/// # Returns
+/// Tuple of (left_column_numbers, right_column_numbers) as Vec<i32>
+///
+/// # Errors
+///
+/// Returns `Err` if any value cannot be parsed as an `i32`.
+/// Lines that don't contain exactly two whitespace-separated values are silently skipped.
+///
+/// # Examples
+///
+/// ```
+/// # use day01::parse_input;
+/// let input = "1 2\n3 4";
+/// let (left, right) = parse_input(input).unwrap();
+/// assert_eq!(left, vec![1, 3]);
+/// assert_eq!(right, vec![2, 4]);
+/// ```
+pub fn parse_input(input: &str) -> Result<(Vec<i32>, Vec<i32>)> {
+    let lines = parse_lines(input);
+
+    let mut left_nums: Vec<i32> = Vec::new();
+    let mut right_nums: Vec<i32> = Vec::new();
+
+    // Parse the two columns of numbers
+    for line in lines {
+        let columns: Vec<&str> = line.split_whitespace().collect();
+        if columns.len() == 2 {
+            left_nums.push(columns[0].parse()?);
+            right_nums.push(columns[1].parse()?);
+        }
+    }
+
+    Ok((left_nums, right_nums))
 }
