@@ -12,5 +12,3 @@
   * how to do get the test coverage data? == tarpaulin. kcovyes?
 
 * solve day01 part 1 using ndalegebra method for computing L1 norm
-
-* replace str with some path type where applicable
