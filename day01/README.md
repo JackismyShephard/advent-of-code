@@ -52,11 +52,12 @@ Synthetic data was adjusted to match these characteristics, though results remai
 
 ### Algorithmic Complexity Dominates Performance
 
-**Result: Algorithm choice (O(n) vs O(n²)) creates 7.5x performance differences**
+#### Result: Algorithm choice (O(n) vs O(n²)) creates 7.5x performance differences
 
 The most significant performance factor was algorithmic complexity:
 
 **Part 2 - HashMap vs Naive Algorithm:**
+
 - HashMap O(n): ~25-30µs for n=1000  
 - Naive O(n²): ~200-300µs for n=1000
 - **7.5x speedup** from using optimal algorithms
@@ -64,33 +65,37 @@ The most significant performance factor was algorithmic complexity:
 
 ### Implementation Style Has Minimal Impact
 
-**Result: Functional vs imperative differences are 2-18%, much smaller than algorithmic choices**
+#### Result: Functional vs imperative differences are 2-18%, much smaller than algorithmic choices
 
 When parsing overhead was eliminated and pure algorithms were measured:
 
 **Sorting + Summation (Part 1):**
+
 - Imperative approach: 2% faster on average
 - Functional approach using zip/map/sum: slightly more overhead
 - Both approaches scale identically with input size
 
 **HashMap Frequency Counting (Part 2):**
+
 - Functional approach: 4% faster on average  
 - Iterator chains optimize better for HashMap operations
 - Both approaches have identical O(n) complexity
 
 **Naive O(n²) Algorithm (Part 2):**
+
 - Performance differences within 4% between imperative and functional
 - Both approaches confirmed Rust's zero-cost abstractions
 - Functional cartesian_product compiles to nearly identical assembly
 
 **String Parsing:**
+
 - Imperative approach: 18% faster consistently
 - Functional parsing with itertools has measurable overhead
 - Most significant functional vs imperative difference observed
 
 ### Critical Methodology Insight
 
-**Parsing overhead masked algorithmic differences in end-to-end benchmarks**
+#### Parsing overhead masked algorithmic differences in end-to-end benchmarks
 
 - Parsing dominated total runtime in end-to-end measurements
 - End-to-end benchmarks showed misleading ~1.0x ratios
@@ -146,11 +151,13 @@ This comprehensive experiment reveals a clear **hierarchy of performance impact*
 3. **Micro-optimizations** (<2% difference): Individual coding choices
 
 **Key insights:**
+
 - Functional vs imperative performance in Rust is **pattern-dependent but generally negligible** compared to algorithmic choices
 - While functional approaches excel in mathematical operations and imperative approaches lead in string processing, the differences are small enough that code readability should drive decisions
 - The critical methodological insight—that parsing overhead can completely mask algorithmic differences—has broader implications for micro-benchmarking in systems programming
 
 **Practical recommendations:**
+
 1. **Focus on algorithms first**: Choose O(n) over O(n²) solutions - this matters most
 2. **Style is secondary**: Choose implementation style based on code clarity and maintainability  
 3. **Micro-optimize last**: Only optimize functional vs imperative in proven bottlenecks

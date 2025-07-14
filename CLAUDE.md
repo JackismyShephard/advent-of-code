@@ -127,17 +127,6 @@ python3 pre-commit-4.2.0.pyz run --all-files
 - **TOML files**: Formatting and linting (taplo)
 - **Markdown files**: Will be added in future updates
 
-### Automated Comment Formatting
-
-The repository includes a pre-commit hook that uses Claude Code CLI in headless mode to automatically format docstring comments
-
-This hook:
-
-- Detects Rust files with docstring comments longer than 80 characters
-- Uses `claude -p` (headless mode) to format them according to the 80-character standard
-- Only processes files that actually need formatting
-- Maintains code integrity while fixing comment formatting
-
 **IMPORTANT - Never bypass hooks:**
 
 - Never use `git commit --no-verify` unless absolutely necessary

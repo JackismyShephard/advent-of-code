@@ -14,5 +14,5 @@ criterion = { workspace = true }
 rstest = { workspace = true }
 
 [[bench]]
-name = "naive_vs_optimized"
+name = "algorithmic_scaling"
 harness = false

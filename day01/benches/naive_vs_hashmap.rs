@@ -37,6 +37,7 @@ fn benchmark_algorithms(c: &mut Criterion) {
         title: "Day 1: HashMap vs Naive Algorithm Performance",
         algorithm1_name: "O(n) HashMap Solution",
         algorithm2_name: "O(n²) Naive Algorithm",
+        x_axis_label: "Number of Sequences (n)",
     };
 
     process_benchmark_results(

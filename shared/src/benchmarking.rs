@@ -51,12 +51,14 @@ where
 /// * `title` - Human-readable title displayed on the plot (can contain any characters)
 /// * `algorithm1_name` - Human-readable name for algorithm 1 in plot legend
 /// * `algorithm2_name` - Human-readable name for algorithm 2 in plot legend
+/// * `x_axis_label` - Label for the x-axis (e.g., "Sequence Length (N)", "Rule Count (M)")
 /// ```
 pub struct PlotConfig<'a> {
     pub filename: &'a str,
     pub title: &'a str,
     pub algorithm1_name: &'a str,
     pub algorithm2_name: &'a str,
+    pub x_axis_label: &'a str,
 }
 
 /// Creates a Criterion instance optimized for fast benchmarking.
@@ -151,6 +153,7 @@ pub fn run_dual_algorithm_benchmark<'a, R, G>(
 ///     title: "Algorithm Performance Comparison",
 ///     algorithm1_name: "O(n²) Naive Algorithm",
 ///     algorithm2_name: "O(n) HashMap Solution",
+///     x_axis_label: "Input Size (N)",
 /// };
 /// process_benchmark_results("data", "criterion", &algo1, &algo2, &plot_config, &test_config);
 /// ```
@@ -180,6 +183,7 @@ pub fn process_benchmark_results<R, G>(
                 plot_config.title,
                 plot_config.algorithm1_name,
                 plot_config.algorithm2_name,
+                plot_config.x_axis_label,
                 &results,
             ) {
                 eprintln!("Failed to create plot: {e}");
@@ -244,7 +248,9 @@ pub fn extract_criterion_results(
     for &size in sizes {
         let mut times: [f64; 2] = [0.0, 0.0];
         for (algo_name, time) in [algo1_name, algo2_name].iter().zip(&mut times) {
-            let path = format!("{base_path}/{group_name}/{algo_name}/{size}/new/estimates.json");
+            // TODO: Consider reading from 'new' directory when it exists (latest results)
+            // and providing manual baseline promotion functionality for better comparison workflow
+            let path = format!("{base_path}/{group_name}/{algo_name}/{size}/base/estimates.json");
             let estimate = read_criterion_estimate(&path)?;
             *time = estimate;
         }

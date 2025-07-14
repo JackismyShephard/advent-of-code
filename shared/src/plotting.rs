@@ -29,6 +29,7 @@ type PlotChart<'a> = ChartContext<'a, SVGBackend<'a>, Cartesian2d<RangedCoordf64
 /// * `title` - Chart title
 /// * `algo1_name` - Name of the first algorithm
 /// * `algo2_name` - Name of the second algorithm
+/// * `x_axis_label` - Label for the x-axis (e.g., "Sequence Length (N)", "Rule Count (M)")
 /// * `results` - Benchmark data as (input_size, time1_ns, time2_ns, speedup)
 ///   tuples
 ///
@@ -55,6 +56,7 @@ type PlotChart<'a> = ChartContext<'a, SVGBackend<'a>, Cartesian2d<RangedCoordf64
 ///     "Algorithm Performance Comparison",
 ///     "Naive Algorithm",
 ///     "Optimized Algorithm",
+///     "Input Size (N)",
 ///     &results
 /// )?;
 /// # fs::remove_file("benchmark_comparison.svg").ok();
@@ -66,6 +68,7 @@ pub fn create_dual_algorithm_plot(
     title: &str,
     algo1_name: &str,
     algo2_name: &str,
+    x_axis_label: &str,
     results: &[(usize, f64, f64, f64)],
 ) -> Result<()> {
     let (root, mut chart) = setup_dual_performance_chart(filename, title, results)?;
@@ -73,7 +76,7 @@ pub fn create_dual_algorithm_plot(
     // Configure mesh for performance benchmark charts
     chart
         .configure_mesh()
-        .x_desc("Input Size (n)")
+        .x_desc(x_axis_label)
         .y_desc("Time (microseconds)")
         .x_label_formatter(&|x| format!("{x:.0}"))
         .y_label_formatter(&|y| format!("{:.0}", 10f64.powf(*y) / 1000.0))

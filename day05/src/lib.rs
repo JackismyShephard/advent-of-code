@@ -23,11 +23,16 @@
 //! ## Algorithmic Approaches
 //!
 //! 1. **Naive O(N²M)**: For each pair of pages in sequence, check all rules
-//! 2. **Optimized O(V + E)**: Build position map, then validate each rule in
+//! 2. **Optimized O(N + M)**: Build position map, then validate each rule in
 //!    constant time
 //!
 //! The optimized approach leverages the insight that we only need to check rule
 //! violations, not construct a full topological sort.
+//!
+//! **Note on Graph Theory Notation**: In formal graph algorithms, this would be
+//! expressed as O(V + E) where V = vertices (unique pages) and E = edges (rules).
+//! In our specific context: V ≤ N (pages in sequence) and E = M (total rules),
+//! so O(V + E) ≈ O(N + M) for practical analysis.
 
 use anyhow::{Context, Result};
 use itertools::Itertools;
@@ -105,11 +110,11 @@ pub fn solve_part1(input: &str) -> Result<u32> {
 
 /// Checks if a sequence is valid according to precedence rules.
 ///
-/// Uses an optimized O(V + E) position-based validation algorithm where V is
-/// the number of pages in a sequence and E is the number of applicable rules.
+/// Uses an optimized O(N + M) position-based validation algorithm where N is
+/// the number of pages in a sequence and M is the number of rules.
 /// This approach builds position maps for first and last occurrences of each
-/// page in O(V) time, then validates each rule in constant time O(1), achieving
-/// optimal O(V + E) performance.
+/// page in O(N) time, then validates each rule in constant time O(1), achieving
+/// optimal O(N + M) performance.
 ///
 /// For rules with duplicate pages in a sequence, the algorithm correctly
 /// handles the constraint that ALL occurrences of the 'before' page must
