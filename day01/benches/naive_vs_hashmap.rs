@@ -15,11 +15,11 @@ fn benchmark_algorithms(c: &mut Criterion) {
     // Algorithm definitions
     let algorithm1 = Algorithm {
         name: "hashmap",
-        function: solve_part2,
+        function: solve_part2 as fn(&str) -> _,
     };
     let algorithm2 = Algorithm {
         name: "naive",
-        function: solve_part2_naive,
+        function: solve_part2_naive as fn(&str) -> _,
     };
 
     // Test configuration

@@ -11,15 +11,32 @@ pub type BenchmarkResults = Vec<(usize, f64, f64, f64)>;
 /// Algorithm definition pairing name with implementation.
 ///
 /// Groups semantically related parameters: an algorithm's identifier and its function.
-pub struct Algorithm<'a, F> {
+/// Uses function pointers for maximum performance and type compatibility.
+///
+/// # Attributes
+/// * `name` - Unique identifier for the algorithm (used in Criterion folder names)
+/// * `function` - Function pointer to the algorithm implementation (should match expected signature)
+///
+pub struct Algorithm<'a, R> {
     pub name: &'a str,
-    pub function: F,
+    pub function: fn(&str) -> R,
 }
 
 /// Test configuration for benchmark execution.
 ///
 /// Groups semantically related parameters: test sizes and input generation method.
-pub struct TestConfig<'a, G> {
+///
+/// # Attributes
+/// * `sizes` - Array of input sizes to test (e.g., [1000, 5000, 10000])
+/// * `generate_input` - Function to generate input for each size
+///
+/// # Type Parameters
+/// * `G` - Function type for input generation (e.g., `Fn(usize) -> String`)
+///
+pub struct TestConfig<'a, G>
+where
+    G: Fn(usize) -> String,
+{
     pub sizes: &'a [usize],
     pub generate_input: G,
 }
@@ -29,21 +46,11 @@ pub struct TestConfig<'a, G> {
 /// Contains only display-related parameters for plot generation.
 /// Data extraction parameters (Criterion folder names) are handled separately.
 ///
-/// # Parameters
+/// # Attributes
 /// * `filename` - Output SVG filename (should be filesystem-safe)
 /// * `title` - Human-readable title displayed on the plot (can contain any characters)
 /// * `algorithm1_name` - Human-readable name for algorithm 1 in plot legend
 /// * `algorithm2_name` - Human-readable name for algorithm 2 in plot legend
-///
-/// # Examples
-/// ```
-/// # use shared::benchmarking::PlotConfig;
-/// let config = PlotConfig {
-///     filename: "naive_vs_hashmap.svg",
-///     title: "Algorithm Performance Comparison",
-///     algorithm1_name: "O(n²) Naive Algorithm",      // Can have Unicode, spaces, etc.
-///     algorithm2_name: "O(n) HashMap Solution",      // Can have Unicode, spaces, etc.
-/// };
 /// ```
 pub struct PlotConfig<'a> {
     pub filename: &'a str,
@@ -89,35 +96,28 @@ pub fn create_criterion_benchmark(data_dir: &str) -> Criterion {
 /// * `algorithm1` - First algorithm definition (name + function)
 /// * `algorithm2` - Second algorithm definition (name + function)
 /// * `config` - Test configuration (sizes + input generation)
-pub fn run_dual_algorithm_benchmark<'a, F1, F2, R, G>(
+pub fn run_dual_algorithm_benchmark<'a, R, G>(
     c: &mut Criterion,
     group_name: &str,
-    algorithm1: &Algorithm<'a, F1>,
-    algorithm2: &Algorithm<'a, F2>,
+    algorithm1: &Algorithm<'a, R>,
+    algorithm2: &Algorithm<'a, R>,
     config: &TestConfig<'a, G>,
 ) where
     G: Fn(usize) -> String,
-    F1: Fn(&str) -> R + Copy,
-    F2: Fn(&str) -> R + Copy,
 {
     let mut group = c.benchmark_group(group_name);
 
     for &size in config.sizes {
         let input = (config.generate_input)(size);
 
-        // Benchmark first algorithm
-        group.bench_with_input(
-            BenchmarkId::new(algorithm1.name, size),
-            &input,
-            |b, input| b.iter(|| black_box((algorithm1.function)(black_box(input)))),
-        );
-
-        // Benchmark second algorithm
-        group.bench_with_input(
-            BenchmarkId::new(algorithm2.name, size),
-            &input,
-            |b, input| b.iter(|| black_box((algorithm2.function)(black_box(input)))),
-        );
+        for (name, func) in [
+            (algorithm1.name, algorithm1.function),
+            (algorithm2.name, algorithm2.function),
+        ] {
+            group.bench_with_input(BenchmarkId::new(name, size), &input, |b, input| {
+                b.iter(|| black_box(func(black_box(input))))
+            });
+        }
     }
 
     group.finish();
@@ -143,8 +143,8 @@ pub fn run_dual_algorithm_benchmark<'a, F1, F2, R, G>(
 /// # fn solve_naive(_: &str) -> i32 { 0 }
 /// # fn solve_hashmap(_: &str) -> i32 { 0 }
 /// # fn gen_input(_: usize) -> String { String::new() }
-/// let algo1 = Algorithm { name: "naive", function: solve_naive };
-/// let algo2 = Algorithm { name: "hashmap", function: solve_hashmap };
+/// let algo1 = Algorithm { name: "naive", function: solve_naive as fn(&str) -> i32 };
+/// let algo2 = Algorithm { name: "hashmap", function: solve_hashmap as fn(&str) -> i32 };
 /// let test_config = TestConfig { sizes: &[1000, 5000], generate_input: gen_input };
 /// let plot_config = PlotConfig {
 ///     filename: "naive_vs_hashmap.svg",
@@ -154,16 +154,14 @@ pub fn run_dual_algorithm_benchmark<'a, F1, F2, R, G>(
 /// };
 /// process_benchmark_results("data", "criterion", &algo1, &algo2, &plot_config, &test_config);
 /// ```
-pub fn process_benchmark_results<F1, F2, R, G>(
+pub fn process_benchmark_results<R, G>(
     data_dir: &str,
     group_name: &str,
-    algorithm1: &Algorithm<F1>,
-    algorithm2: &Algorithm<F2>,
+    algorithm1: &Algorithm<R>,
+    algorithm2: &Algorithm<R>,
     plot_config: &PlotConfig,
     test_config: &TestConfig<G>,
 ) where
-    F1: Fn(&str) -> R,
-    F2: Fn(&str) -> R,
     G: Fn(usize) -> String,
 {
     let plot_path = format!("{data_dir}/{}", plot_config.filename);
@@ -244,16 +242,14 @@ pub fn extract_criterion_results(
     let mut results = Vec::new();
 
     for &size in sizes {
-        let algorithm1_path =
-            format!("{base_path}/{group_name}/{algo1_name}/{size}/base/estimates.json");
-        let algorithm2_path =
-            format!("{base_path}/{group_name}/{algo2_name}/{size}/base/estimates.json");
-
-        let algorithm1_time = read_criterion_estimate(&algorithm1_path)?;
-        let algorithm2_time = read_criterion_estimate(&algorithm2_path)?;
-
-        let speedup = algorithm2_time / algorithm1_time;
-        results.push((size, algorithm1_time, algorithm2_time, speedup));
+        let mut times: [f64; 2] = [0.0, 0.0];
+        for (algo_name, time) in [algo1_name, algo2_name].iter().zip(&mut times) {
+            let path = format!("{base_path}/{group_name}/{algo_name}/{size}/new/estimates.json");
+            let estimate = read_criterion_estimate(&path)?;
+            *time = estimate;
+        }
+        let [algo1_time, algo2_time] = times;
+        results.push((size, algo1_time, algo2_time, algo2_time / algo1_time));
     }
 
     Ok(results)

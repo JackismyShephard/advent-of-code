@@ -9,7 +9,8 @@ use std::fs;
 /// Reads the puzzle input file for a specific Advent of Code day.
 ///
 /// Constructs the standard input file path and reads the entire file contents
-/// into memory as a UTF-8 string. Follows the naming convention `dayXX/input.txt`.
+/// into memory as a UTF-8 string. Follows the naming convention
+/// `dayXX/input.txt`.
 ///
 /// # Parameters
 /// * `day` - The day number (1-25) for which to read the input file
@@ -43,31 +44,4 @@ use std::fs;
 pub fn read_input(day: u8) -> Result<String> {
     let filename = format!("day{day:02}/input.txt");
     Ok(fs::read_to_string(filename)?)
-}
-
-/// Parses input text into non-empty lines for processing.
-///
-/// Splits the input on line boundaries and filters out any lines that are
-/// empty or contain only whitespace characters. Preserves the original
-/// string references without allocation for efficiency.
-///
-/// # Parameters
-/// * `input` - Raw input text containing newline-separated data
-///
-/// # Returns
-/// Vector of string slices representing non-empty lines with whitespace preserved
-///
-/// # Examples
-///
-/// ```
-/// # use shared::input::parse_lines;
-/// let input = "line1\n\nline2\n   \nline3";
-/// let lines = parse_lines(input);
-/// assert_eq!(lines, vec!["line1", "line2", "line3"]);
-/// ```
-pub fn parse_lines(input: &str) -> Vec<&str> {
-    input
-        .lines()
-        .filter(|line| !line.trim().is_empty())
-        .collect()
 }

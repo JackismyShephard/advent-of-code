@@ -10,10 +10,8 @@
 //! An X-MAS pattern consists of two "MAS" words that intersect at their center 'A'
 //! to form an X shape. Each "MAS" can be written forwards or backwards ("SAM").
 
-use anyhow::Result;
-use shared::input::parse_lines;
-
-/// Example input from the problem statement used for testing and documentation.
+/// Example input from the problem statement used for testing and
+/// documentation.
 pub const EXAMPLE_INPUT: &str = "MMMSXXMASM
 MSAMXMSMSA
 AMXSXMAAMM
@@ -28,8 +26,8 @@ MXMXAXMASX";
 /// Solves Part 1: Finds all occurrences of "XMAS" in the word search grid.
 ///
 /// Searches through every position in the grid and counts how many times
-/// "XMAS" appears in all 8 directions (horizontal, vertical, and diagonal).
-/// Words can be written forwards or backwards.
+/// "XMAS" appears in all 8 directions (horizontal, vertical, and
+/// diagonal). Words can be written forwards or backwards.
 ///
 /// # Parameters
 /// * `input` - Multi-line string containing the character grid
@@ -37,32 +35,27 @@ MXMXAXMASX";
 /// # Returns
 /// Total number of "XMAS" occurrences found in the grid
 ///
-/// # Errors
-///
-/// Returns `Err` if the input cannot be parsed.
-///
 /// # Examples
 ///
 /// ```
 /// # use day04::solve_part1;
 /// let input = "XMAS\nMASX";
-/// assert_eq!(solve_part1(input).unwrap(), 1); // "XMAS" going right from (0,0)
+/// assert_eq!(solve_part1(input), 1); // "XMAS" going right from (0,0)
 /// ```
-pub fn solve_part1(input: &str) -> Result<usize> {
+pub fn solve_part1(input: &str) -> usize {
     let grid = parse_input(input);
 
-    let total_count = (0..grid.len())
+    (0..grid.len())
         .map(|row| {
             (0..grid[row].len())
                 .map(|col| count_xmas_at_position(&grid, row, col))
                 .sum::<usize>()
         })
-        .sum();
-
-    Ok(total_count)
+        .sum()
 }
 
-/// Counts the number of times "XMAS" appears starting from a specific position.
+/// Counts the number of times "XMAS" appears starting from a specific
+/// position.
 ///
 /// Checks all 8 directions from the given position and counts how many times
 /// the target word "XMAS" appears.
@@ -80,7 +73,7 @@ pub fn solve_part1(input: &str) -> Result<usize> {
 /// ```
 /// # use day04::{parse_input, count_xmas_at_position};
 /// let grid = parse_input("XMAS\nMASX");
-/// assert_eq!(count_xmas_at_position(&grid, 0, 0), 1); // "XMAS" going right
+/// assert_eq!(count_xmas_at_position(&grid, 0, 0), 1); // "XMAS" right
 /// ```
 pub fn count_xmas_at_position(grid: &[Vec<char>], row: usize, col: usize) -> usize {
     const DIRECTIONS: [(isize, isize); 8] = [
@@ -114,7 +107,7 @@ pub fn count_xmas_at_position(grid: &[Vec<char>], row: usize, col: usize) -> usi
 /// * `col_delta` - Column direction (-1, 0, or 1)
 ///
 /// # Returns
-/// `true` if "XMAS "is found in the specified direction, `false` otherwise
+/// `true` if "XMAS" is found in the specified direction, `false` otherwise
 ///
 /// # Examples
 ///
@@ -141,8 +134,8 @@ pub fn check_direction(
 }
 /// Solves Part 2: Finds all X-MAS patterns in the given grid.
 ///
-/// Searches for patterns where two "MAS" words intersect at their center 'A'
-/// to form an X shape. Each "MAS" can be written forwards or backwards.
+/// Searches for patterns where two "MAS" words intersect at their center
+/// 'A' to form an X shape. Each "MAS" can be written forwards or backwards.
 ///
 /// # Parameters
 /// * `input` - Multi-line string containing the character grid
@@ -150,33 +143,30 @@ pub fn check_direction(
 /// # Returns
 /// Total number of X-MAS patterns found in the grid
 ///
-/// # Errors
-/// Returns `Err` if the input cannot be parsed.
-///
 /// # Examples
 /// ```
 /// # use day04::solve_part2;
 /// let input = "M.S\n.A.\nM.S";
-/// assert_eq!(solve_part2(input).unwrap(), 1);
+/// assert_eq!(solve_part2(input), 1);
 /// ```
-pub fn solve_part2(input: &str) -> Result<usize> {
+pub fn solve_part2(input: &str) -> usize {
     let grid = parse_input(input);
 
-    let pattern_count = (0..grid.len())
+    (0..grid.len())
         .map(|row| {
             (0..grid[row].len())
                 .filter(|&col| is_xmas_pattern(&grid, row, col))
                 .count()
         })
-        .sum();
-
-    Ok(pattern_count)
+        .sum()
 }
 
-/// Checks if a 3x3 region centered at the given position contains an X-MAS pattern.
+/// Checks if a 3x3 region centered at the given position contains an X-MAS
+/// pattern.
 ///
-/// An X-MAS pattern consists of two "MAS" words that intersect at the center 'A'
-/// to form an X shape. Each "MAS" can be written forwards or backwards ("SAM").
+/// An X-MAS pattern consists of two "MAS" words that intersect at the center
+/// 'A' to form an X shape. Each "MAS" can be written forwards or backwards
+/// ("SAM").
 ///
 /// # Parameters
 /// * `grid` - The 2D character grid to check
@@ -190,7 +180,7 @@ pub fn solve_part2(input: &str) -> Result<usize> {
 /// ```
 /// # use day04::{parse_input, is_xmas_pattern};
 /// let grid = parse_input("M.S\n.A.\nM.S");
-/// assert!(is_xmas_pattern(&grid, 1, 1)); // Center A with X-MAS pattern
+/// assert!(is_xmas_pattern(&grid, 1, 1)); // X-MAS pattern at center
 /// ```
 pub fn is_xmas_pattern(grid: &[Vec<char>], center_row: usize, center_col: usize) -> bool {
     const MAS_PATTERN: [char; 3] = ['M', 'A', 'S'];
@@ -199,7 +189,8 @@ pub fn is_xmas_pattern(grid: &[Vec<char>], center_row: usize, center_col: usize)
     let center_row_signed = center_row as isize;
     let center_col_signed = center_col as isize;
 
-    // Both diagonal directions: top-left to bottom-right (1,1) and top-right to bottom-left (1,-1)
+    // Both diagonal directions: top-left to bottom-right (1,1) and
+    // top-right to bottom-left (1,-1)
     let diagonal_directions = [(1, 1), (1, -1)];
     let patterns = [&MAS_PATTERN, &SAM_PATTERN];
 
@@ -217,19 +208,23 @@ pub fn is_xmas_pattern(grid: &[Vec<char>], center_row: usize, center_col: usize)
     })
 }
 
-/// Checks if a character at the specified position matches the expected character.
+/// Checks if a character at the specified position matches the expected
+/// character.
 ///
 /// Performs bounds checking and returns false if the position is out of bounds
 /// or if the character doesn't match.
 ///
 /// # Parameters
 /// * `grid` - The 2D character grid to access
-/// * `row` - Row position (can be negative, will return false if out of bounds)
-/// * `col` - Column position (can be negative, will return false if out of bounds)
+/// * `row` - Row position (can be negative, will return false if out of
+///   bounds)
+/// * `col` - Column position (can be negative, will return false if out of
+///   bounds)
 /// * `expected` - The character to check for at this position
 ///
 /// # Returns
-/// `true` if the position is valid and contains the expected character, `false` otherwise
+/// `true` if the position is valid and contains the expected character,
+/// `false` otherwise
 fn char_matches_at(grid: &[Vec<char>], row: isize, col: isize, expected: char) -> bool {
     if row < 0 || col < 0 {
         return false;
@@ -268,8 +263,10 @@ fn char_matches_at(grid: &[Vec<char>], row: isize, col: isize, expected: char) -
 /// ]);
 /// ```
 pub fn parse_input(input: &str) -> Vec<Vec<char>> {
-    parse_lines(input)
-        .iter()
+    input
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty())
         .map(|line| line.chars().collect())
         .collect()
 }

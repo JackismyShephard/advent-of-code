@@ -82,20 +82,7 @@ Focused configuration for learning Rust without information overload:
   - run pre-commit hooks to ensure code quality
   - DO NOT commit unless asked to do so.
 
-## Common Linting/Type Errors and Fixes
-
-**Remember these fixes for recurring issues:**
-
-- **`clippy::uninlined_format_args`**: Use `{variable}` instead of `{}",
-  variable` in format strings
-  - ❌ `println!("Result: {}", result);`
-  - ✅ `println!("Result: {result}");`
-
-- **`clippy::too_many_arguments`**: NEVER use `#[allow(clippy::too_many_arguments)]` without explicit user permission
-  - ✅ **Proper solution**: Group semantically related parameters into meaningful structs
-  - ❌ **Wrong**: Adding `#[allow]` annotation to bypass the warning
-
-- **IMPORTANT: Always commit ALL files for each day solution:**
+- **IMPORTANT: When commiting always include all changes for the given task:**
 
   - `dayXX/src/main.rs` - The solution code
   - `dayXX/Cargo.toml` - Dependencies
@@ -103,9 +90,9 @@ Focused configuration for learning Rust without information overload:
   - `dayXX/description.txt` - Problem description excerpts
   - `CLAUDE.md` - Update implementation status
   - `README.md` - Update current status section
-  - `Cargo.lock` - Dependency lock file
+  - `Cargo.lock` - Dependency lock
 
-## Git conventions
+### Git conventions
 
 - **ALWAYS follow these git commit message guidelines**
 
@@ -140,6 +127,17 @@ python3 pre-commit-4.2.0.pyz run --all-files
 - **TOML files**: Formatting and linting (taplo)
 - **Markdown files**: Will be added in future updates
 
+### Automated Comment Formatting
+
+The repository includes a pre-commit hook that uses Claude Code CLI in headless mode to automatically format docstring comments
+
+This hook:
+
+- Detects Rust files with docstring comments longer than 80 characters
+- Uses `claude -p` (headless mode) to format them according to the 80-character standard
+- Only processes files that actually need formatting
+- Maintains code integrity while fixing comment formatting
+
 **IMPORTANT - Never bypass hooks:**
 
 - Never use `git commit --no-verify` unless absolutely necessary
@@ -153,7 +151,131 @@ over quality checks, consider migrating to a `justfile`-based approach.
 Replace automatic pre-commit hooks with manual `just check` commands.
 Would require discipline to remember running checks before commits
 
+### Common Linting/Type Errors and Fixes
+
+**Remember these fixes for recurring issues:**
+
+- **`clippy::uninlined_format_args`**: Use `{variable}` instead of `{}",
+  variable` in format strings
+  - ❌ `println!("Result: {}", result);`
+  - ✅ `println!("Result: {result}");`
+
+- **`clippy::too_many_arguments`**: NEVER use `#[allow(clippy::too_many_arguments)]` without explicit user permission
+  - ✅ **Proper solution**: Group semantically related parameters into meaningful structs
+  - ❌ **Wrong**: Adding `#[allow]` annotation to bypass the warning
+
+- **Docstring line breaking**: NEVER use `\` continuation in comments
+  - ❌ Breaking mid-word or mid-phrase creates unreadable text like "/// input\n/// slice" or "/// instructions\n/// are enabled"
+  - ✅ Break at natural sentence/phrase boundaries for readability
+  - ✅ Continue on next line with proper `///` prefix and proper spacing
+  - ✅ Extend continuation lines to ~80 characters when possible unless at section end
+
+## Workspace Dependency Management
+
+- **Shared crates go in workspace dependencies**: If multiple days use the same crate, add to `[workspace.dependencies]`
+- **Check for duplication**: Before adding dependencies, see if other days already use them
+- **Keep workspace.dependencies updated**: Maintain central dependency management
+
+## Rust Coding Conventions
+
+- **Avoid over-engineering**: Don't use structs/classes unless explicitly requested or benefit is TOTALLY TOTALLY obvious
+
+### Rust Signed / unsigned Problem
+
+**The Core Tension:**
+
+- **Array indexing**: Requires `usize` (unsigned)
+  - language requirement to prevent negative array access
+- **Arithmetic**: Often needs signed values.
+- casting between signed and unsigned types leads to verbose code
+
+### SOlution: All-Signed Internal (Professional Grid Libraries)
+
+```rust
+struct Coord { x: i32, y: i32 }  // grid_2d crate approach
+```
+
+- **Pros**: Simple math, proven in production, industry standard
+- **Cons**: Conversion overhead at indexing points
+
+## Error Handling Rules
+
+- **NEVER use `assert_eq!` in library code**: `assert_eq!` is only for tests, not runtime validation
+- **NEVER use `unwrap()` in library code**: `unwrap()` is primarily for tests, causes panics in production
+- **Library functions should return `Result<T, E>`**: Allow callers to handle errors gracefully
+- **Use `?` operator for error propagation**: `value.parse::<u32>()?` instead of `value.parse::<u32>().unwrap()`
+- **Use `bail!` for simple error returns**: More concise than `return Err(anyhow!(...))` - `bail!` macro handles the return automatically
+- **Use let-else pattern matching for validation**:
+
+- **Prefer pattern matching over indexing**: Safer and more idiomatic than bounds checking + indexing
+- **NEVER overwrite description.txt**: Always preserve original AoC problem text, add analysis to separate files
+
+## Documentation Best Practices
+
+### Rust Documentation Standards
+
+Following Rust ecosystem conventions for writing high-quality documentation:
+
+#### Standard Documentation Sections (in order)
+
+1. **Brief description** - What the function does (first paragraph)
+2. **Detailed explanation** - How it works, algorithms used, performance characteristics
+3. **`# Parameters`** - **Explicit semantic documentation of what each
+   parameter represents**
+4. **`# Returns`** - **Explicit description of return value meaning and units**
+   - ONLY for functions that return meaningful values, never for functions returning `()`
+5. **`# Errors`** - When function returns `Result<T, E>` (fallible functions)
+6. **`# Panics`** - When function can panic (if applicable)
+7. **`# Examples`** - **SINGLE SIMPLE EXAMPLE for demonstration only**
+   - Use `# use` to import necessary items
+   - Keep minimal - just show basic usage
+8. **`# Safety`** - For unsafe functions only
+
+#### Project-Specific Enhancement: Explicit Semantic Documentation
+
+**Philosophy**: While Rust's type system is excellent, it doesn't always convey
+the *semantic meaning* of parameters and return values. We enhance standard Rust
+docs with explicit parameter and return documentation.
+
+#### What NOT to include
+
+- Redundant type information - Function signature is self-documenting for types
+- Overly verbose descriptions - Keep semantic descriptions concise but complete
+- **Multiple assertions in doctests** - Prefer single assert per doctest when possible
+
+#### Line Length Standard
+
+- **Docstrings/Comments**: 80 characters maximum (official Rust Style Guide standard)
+- **Enforcement**: Automated via Claude Code pre-commit hook + manual code review
+- **Rationale**: Follows RFC 2436 specification: "Source lines which are entirely comments should be limited to 80 characters"
+
+### Generating Documentation
+
+```bash
+# Generate and open documentation in browser
+cargo doc --no-deps --open -p dayXX
+
+# Generate documentation for all packages
+cargo doc --no-deps
+```
+
+#### WSL-Specific Documentation Viewing
+
+If `cargo doc --open` fails with permission errors in WSL:
+
+```bash
+# Fix permissions
+sudo chown -R $USER:$USER target/
+
+# Install wslu and use wslview
+sudo apt install wslu
+cargo doc --no-deps
+wslview target/doc/dayXX/index.html
+```
+
 ## Writing tests
+
+**Tests go in tests/dayXX.rs**: Not in src/lib.rs with #[cfg(test)], despite that being standard Rust convention
 
 **Consistent organization across all days:**
 
@@ -169,9 +291,99 @@ Would require discipline to remember running checks before commits
 
 ```
 
-**Comprehensive edge case testing through parameterization:**
-
 **Best Practice:** Inline comments explaining each test case
+
+- **ALWAYS test exact error messages when error messages are added to code**
+- Use `result.unwrap_err().to_string()` and `assert!()` with `contains()` for partial matches
+- Or `assert_eq!()` for exact matches when error message is completely controlled
+
+- **Nested Parameterization for Algorithm Testing**
+
+  - **Use `#[values]` to test multiple algorithm implementations with same test cases**
+  - Reduces code duplication when testing naive vs optimized implementations
+  - Ensures both algorithms are tested identically against all edge cases
+  - Pattern for testing multiple functions:
+
+    ```rust
+    #[rstest]
+    #[case(test_data1, expected1)]  // test case 1
+    #[case(test_data2, expected2)]  // test case 2
+    fn test_algorithms(
+        #[values(algorithm1, algorithm2)] algo: fn(Input) -> Output,
+        #[case] input: Input,
+        #[case] expected: Output,
+    ) {
+        assert_eq!(algo(input), expected, "Failed for input: {input:?}");
+    }
+    ```
+
+  - **Organise tests by functionality, not by algorithm** - group related test cases together
+  - **Use separate test functions for different categories** (basic, edge cases, complex scenarios)
+  - **Comprehensive edge case testing through parameterization:**
+
+- **Test Parameterization Style - Prefer Comments Over Description Parameters**
+
+  - Use inline comments `// description` instead of description parameters in `#[case]`
+  - Use `{input:?}` or `{sequence:?}` in error messages for debugging
+
+  - Example pattern:
+
+    ```rust
+    #[rstest]
+    #[case("input1", expected1)]  // test case 1 description
+    #[case("input2", expected2)]  // test case 2 description
+    fn test_function(#[case] input: &str, #[case] expected: Type) {
+        assert_eq!(result, expected, "Failed for input: {input:?}");
+    }
+    ```
+
+## Benchmark Structure
+
+- **Follow day01 benchmark pattern**: Use descriptive names like `algorithm_vs_baseline.rs`
+- **Test multiple input sizes**: Show algorithmic complexity scaling behavior
+- **Generate comparative graphs**: Criterion should output comparison visualizations
+- **Use modern criterion APIs**: Avoid deprecated functions like `criterion::black_box`
+
+### IMPORTANT: Benchmark Configuration Requirements
+
+- **Rust benchmarks require explicit Cargo.toml configuration** - they are NOT auto-discovered like tests
+- **ALWAYS add `[[bench]]` entries to Cargo.toml**:
+
+  ```toml
+  [[bench]]
+  name = "your_benchmark_name"
+  harness = false
+  ```
+
+- **Without proper Cargo.toml entry, benchmarks will hang after compilation with no output**
+- **Each benchmark file needs its own `[[bench]]` entry**
+
+### Criterion HTML Reports
+
+Criterion automatically generates HTML reports when benchmarks are run. The reports are located at:
+
+- `dayXX/data/criterion/report/index.html` (main report index)
+- Individual benchmark reports in subdirectories
+
+**For full HTML report functionality, install gnuplot:**
+
+```bash
+# Ubuntu/Debian
+sudo apt install gnuplot
+
+# macOS
+brew install gnuplot
+
+# Windows
+# Download from http://www.gnuplot.info/download.html
+```
+
+### Report Features
+
+- **Performance timelines**: Track benchmark changes over time
+- **Detailed statistics**: Confidence intervals, outlier detection
+- **Comparative analysis**: Side-by-side performance comparisons
+- **Interactive plots**: Zoom, pan, and explore data points
 
 ## Research Methodology
 
@@ -205,61 +417,6 @@ Would require discipline to remember running checks before commits
 - **Multiple Perspectives**: Present competing viewpoints with evidence
 - **Avoid Extrapolation**: Don't claim "industry standard" from one example
 
-## Documentation Best Practices
-
-### Rust Documentation Standards
-
-Following Rust ecosystem conventions for writing high-quality documentation:
-
-#### Standard Documentation Sections (in order)
-
-1. **Brief description** - What the function does (first paragraph)
-2. **Detailed explanation** - How it works, algorithms used, performance characteristics
-3. **`# Parameters`** - **Explicit semantic documentation of what each
-   parameter represents**
-4. **`# Returns`** - **Explicit description of return value meaning and units**
-   - ONLY for functions that return meaningful values, never for functions returning `()`
-5. **`# Errors`** - When function returns `Result<T, E>` (fallible functions)
-6. **`# Panics`** - When function can panic (if applicable)
-7. **`# Examples`** - Code examples showing usage (most important!)
-   - Use `# use` to import necessary items
-8. **`# Safety`** - For unsafe functions only
-
-#### Project-Specific Enhancement: Explicit Semantic Documentation
-
-**Philosophy**: While Rust's type system is excellent, it doesn't always convey
-the *semantic meaning* of parameters and return values. We enhance standard Rust
-docs with explicit parameter and return documentation.
-
-#### What NOT to include
-
-- Redundant type information - Function signature is self-documenting for types
-- Overly verbose descriptions - Keep semantic descriptions concise but complete
-
-### Generating Documentation
-
-```bash
-# Generate and open documentation in browser
-cargo doc --no-deps --open -p dayXX
-
-# Generate documentation for all packages
-cargo doc --no-deps
-```
-
-#### WSL-Specific Documentation Viewing
-
-If `cargo doc --open` fails with permission errors in WSL:
-
-```bash
-# Fix permissions
-sudo chown -R $USER:$USER target/
-
-# Install wslu and use wslview
-sudo apt install wslu
-cargo doc --no-deps
-wslview target/doc/dayXX/index.html
-```
-
 ## Performance Optimization & Profiling
 
 **IMPORTANT**: Always use `--release` flag for performance-sensitive code
@@ -289,48 +446,3 @@ Target the **biggest bottleneck first**
 5. **Profile-Guided Optimization (PGO)**
 6. **Manual micro-optimizations**
 7. **Parallelization**
-
-## Criterion HTML Reports
-
-Criterion automatically generates HTML reports when benchmarks are run. The reports are located at:
-
-- `dayXX/data/criterion/report/index.html` (main report index)
-- Individual benchmark reports in subdirectories
-
-**For full HTML report functionality, install gnuplot:**
-
-```bash
-# Ubuntu/Debian
-sudo apt install gnuplot
-
-# macOS
-brew install gnuplot
-
-# Windows
-# Download from http://www.gnuplot.info/download.html
-```
-
-### Report Features
-
-- **Performance timelines**: Track benchmark changes over time
-- **Detailed statistics**: Confidence intervals, outlier detection
-- **Comparative analysis**: Side-by-side performance comparisons
-- **Interactive plots**: Zoom, pan, and explore data points
-
-## Rust Signed / unsigned Problem
-
-**The Core Tension:**
-
-- **Array indexing**: Requires `usize` (unsigned)
-  - language requirement to prevent negative array access
-- **Arithmetic**: Often needs signed values.
-- casting between signed and unsigned types leads to verbose code
-
-### SOlution: All-Signed Internal (Professional Grid Libraries)
-
-```rust
-struct Coord { x: i32, y: i32 }  // grid_2d crate approach
-```
-
-- **Pros**: Simple math, proven in production, industry standard
-- **Cons**: Conversion overhead at indexing points

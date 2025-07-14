@@ -6,6 +6,7 @@ edition.workspace = true
 [dependencies]
 shared = { path = "../shared" }
 anyhow = { workspace = true }
+itertools = { workspace = true }
 rustc-hash = "2.1.1"
 
 [dev-dependencies]

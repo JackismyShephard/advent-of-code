@@ -13,6 +13,11 @@ fn test_extract_mul_instructions_example() {
 }
 
 #[rstest]
+#[case(EXAMPLE_INPUT, vec![(2, 4), (5, 5), (11, 8), (8, 5)])] // Example input
+#[case("mul(4* mul(6,9! ?(12,34) mul ( 2 , 4 ) mul[3,7] mul(123,456)", vec![(123, 456)])] // Invalid formats ignored
+#[case("", vec![])] // Empty input
+#[case("no mul instructions here", vec![])] // No valid instructions
+#[case("mul(1,2) mul(12,34) mul(123,456) mul(1234,5) mul(1,2345)", vec![(1, 2), (12, 34), (123, 456)])] // 1-3 digit boundary
 #[case("mul(4* mul(6,9! ?(12,34) mul ( 2 , 4 ) mul[3,7] mul(123,456)", vec![(123, 456)])] // Invalid formats ignored
 #[case("", vec![])] // Empty input
 #[case("no mul instructions here", vec![])] // No valid instructions
@@ -23,6 +28,22 @@ fn test_extract_mul_instructions_edge_cases(
 ) {
     let instructions = extract_mul_instructions(input).unwrap();
     assert_eq!(instructions, expected);
+}
+
+#[rstest]
+#[case("", vec![])] // Empty input
+#[case("no mul instructions here", vec![])] // No valid instructions
+#[case("mul(4* mul[3,7] mul ( 2 , 4 )", vec![])] // All invalid formats
+fn test_extract_mul_instructions_error_cases(
+    #[case] input: &str,
+    #[case] expected: Vec<(u32, u32)>,
+) {
+    let result = extract_mul_instructions(input);
+    assert!(
+        result.is_ok(),
+        "Function should handle invalid input gracefully"
+    );
+    assert_eq!(result.unwrap(), expected);
 }
 
 #[test]
@@ -45,6 +66,22 @@ fn test_extract_enabled_mul_instructions_edge_cases(
     assert_eq!(instructions, expected);
 }
 
+#[rstest]
+#[case("", vec![])] // Empty input
+#[case("don't()mul(1,2)", vec![])] // Disabled instructions
+#[case("invalid input", vec![])] // No valid instructions
+fn test_extract_enabled_mul_instructions_error_cases(
+    #[case] input: &str,
+    #[case] expected: Vec<(u32, u32)>,
+) {
+    let result = extract_enabled_mul_instructions(input);
+    assert!(
+        result.is_ok(),
+        "Function should handle invalid input gracefully"
+    );
+    assert_eq!(result.unwrap(), expected);
+}
+
 // ===== SOLVE FUNCTION TESTS =====
 
 #[rstest]
@@ -60,26 +97,27 @@ fn test_solve_functions_example(
 }
 
 #[rstest]
-#[case(solve_part1, "mul(2,3)", 6)] // Simple multiplication
-#[case(solve_part1, "mul(10,10)", 100)] // Two-digit numbers
-#[case(solve_part1, "mul(1,1)mul(2,2)mul(3,3)", 14)] // Multiple instructions: 1 + 4 + 9 = 14
-#[case(solve_part1, "no valid instructions", 0)] // No valid instructions
-#[case(solve_part1, "mul(4* mul[3,7] mul ( 2 , 4 )", 0)] // Invalid format instructions
-#[case(solve_part2, "mul(2,3)", 6)] // Simple enabled case
-#[case(solve_part2, "don't()mul(2,3)", 0)] // Simple disabled case
-#[case(solve_part2, "don't()mul(2,3)do()mul(4,5)", 20)] // Re-enabled case
-#[case(
-    solve_part2,
-    "mul(1,1)don't()mul(2,2)do()mul(3,3)don't()mul(4,4)do()mul(5,5)",
-    35
-)] // Complex state changes: 1*1 + 3*3 + 5*5 = 35
+#[case("mul(2,3)", 6)] // Simple multiplication
+#[case("mul(10,10)", 100)] // Two-digit numbers
+#[case("mul(1,1)mul(2,2)mul(3,3)", 14)] // Multiple instructions: 1 + 4 + 9 = 14
+#[case("no valid instructions", 0)] // No valid instructions
+#[case("mul(4* mul[3,7] mul ( 2 , 4 )", 0)] // Invalid format instructions
 fn test_solve_functions_edge_cases(
-    #[case] solve_fn: fn(&str) -> anyhow::Result<u32>,
+    #[values(solve_part1, solve_part2)] solve_fn: fn(&str) -> anyhow::Result<u32>,
     #[case] input: &str,
     #[case] expected: u32,
 ) {
     let result = solve_fn(input).unwrap();
-    assert_eq!(result, expected);
+    assert_eq!(result, expected, "Failed for input: {input:?}");
+}
+
+#[rstest]
+#[case("don't()mul(2,3)", 0)] // Simple disabled case
+#[case("don't()mul(2,3)do()mul(4,5)", 20)] // Re-enabled case
+#[case("mul(1,1)don't()mul(2,2)do()mul(3,3)don't()mul(4,4)do()mul(5,5)", 35)] // Complex state changes: 1*1 + 3*3 + 5*5 = 35
+fn test_solve_part2_control_flow(#[case] input: &str, #[case] expected: u32) {
+    let result = solve_part2(input).unwrap();
+    assert_eq!(result, expected, "Part 2 failed for input: {input:?}");
 }
 
 #[rstest]

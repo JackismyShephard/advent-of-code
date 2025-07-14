@@ -11,10 +11,12 @@ fn test_parse_input_example() {
 }
 
 #[rstest]
-#[case("", vec![], vec![], "empty input")] // Empty input
-#[case("1", vec![], vec![], "single number")] // Single number, no pair
 #[case("1  2", vec![1], vec![2], "extra spaces")] // Extra spaces are handled
-#[case("1 2\n3", vec![1], vec![2], "incomplete pair")] // Incomplete pair is skipped
+#[case("1 2\n\n3 4", vec![1, 3], vec![2, 4], "empty lines ignored")] // Empty lines are skipped
+#[case("\n\n1 2\n3 4\n\n", vec![1, 3], vec![2, 4], "leading/trailing whitespace ignored")] // Leading/trailing empty lines
+#[case("1 2\n   \n3 4", vec![1, 3], vec![2, 4], "whitespace-only lines ignored")] // Whitespace-only lines
+#[case("", vec![], vec![], "empty input")] // Empty input returns empty vectors
+#[case("\n\n   \n", vec![], vec![], "only whitespace")] // Only whitespace returns empty vectors
 fn test_parse_input_edge_cases(
     #[case] input: &str,
     #[case] expected_left: Vec<i32>,
@@ -24,6 +26,20 @@ fn test_parse_input_edge_cases(
     let (left, right) = parse_input(input).unwrap();
     assert_eq!(left, expected_left, "Left mismatch for {description}");
     assert_eq!(right, expected_right, "Right mismatch for {description}");
+}
+
+#[rstest]
+#[case("1", "exactly two")] // Single number
+#[case("1 2 3", "exactly two")] // Too many numbers
+#[case("1 2\n3", "exactly two")] // Mixed valid and invalid lines
+fn test_parse_input_errors(#[case] input: &str, #[case] expected_error: &str) {
+    let result = parse_input(input);
+    assert!(result.is_err(), "Should error on input: {input:?}");
+    let error = result.unwrap_err();
+    assert!(
+        error.to_string().contains(expected_error),
+        "Error message should contain '{expected_error}', got: {error}"
+    );
 }
 
 // ===== SOLVE FUNCTION TESTS =====

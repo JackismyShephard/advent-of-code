@@ -31,7 +31,7 @@ repos:
           - "warnings"      # keep strictness
       # - id: cargo-check           # quick type-check only
 
-  # 4) Custom hook for running tests
+  # 4) Custom hooks for tests and comment formatting
   - repo: local
     hooks:
       - id: cargo-test
@@ -40,3 +40,10 @@ repos:
         language: system
         files: \.rs$
         pass_filenames: false
+        
+      # - id: claude-format-comments
+        #   name: claude format docstrings
+        #   entry: sh -c 'for file; do cat "$file" | ~/.claude/local/claude -p "Format all docstring comments (lines starting with ///) to comply with the 80-character line length standard from CLAUDE.md. Only modify comment lines, return the complete file." > "$file.tmp" && mv "$file.tmp" "$file"; done'
+        #   language: system
+        #   files: \.rs$
+        # NOTE: Claude formatting hook disabled due to performance issues (2+ minute timeouts)

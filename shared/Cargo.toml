@@ -5,6 +5,8 @@ edition.workspace = true
 
 [dependencies]
 anyhow = { workspace = true }
+itertools = { workspace = true }
 plotters = { workspace = true }
 criterion = { workspace = true }
 serde_json = "1.0.140"
+regex = "1.11.1"
